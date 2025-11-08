@@ -492,13 +492,16 @@ async def analyze_crypto_opportunities():
 class AdvancedTradingML:
     def __init__(self):
         # Ensemble of models for better predictions
-        self.rf_model = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42)
+        self.rf_model = RandomForestClassifier(n_estimators=300, max_depth=15, min_samples_split=3, random_state=42)
         self.is_trained = False
         self.training_data = []
         self.feature_importance = {}
         self.win_streak = 0
         self.loss_streak = 0
         self.performance_history = []
+        self.market_regime = "neutral"  # bull, bear, neutral, volatile
+        self.profit_factor = 1.0  # Ratio of wins to losses
+        self.sharpe_ratio = 0.0  # Risk-adjusted returns
         
     def calculate_advanced_features(self, basic_features, market_data):
         """Calculate advanced features from market data"""
