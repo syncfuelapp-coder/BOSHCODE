@@ -84,10 +84,32 @@ const ActivePositions = ({ positions, cryptoData }) => {
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-700/30">
-                    <div className="text-xs text-slate-400">
-                      Current: ${currentPrice.toFixed(6)}
+                  <div className="pt-3 border-t border-slate-700/30 space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-400">Current:</span>
+                      <span className="text-slate-200 font-semibold">${currentPrice.toFixed(6)}</span>
                     </div>
+                    {position.take_profit && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Take Profit:</span>
+                        <span className="text-emerald-400 font-semibold">
+                          ${position.take_profit.toFixed(6)} ({(position.take_profit_pct * 100).toFixed(1)}%)
+                        </span>
+                      </div>
+                    )}
+                    {position.stop_loss && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-400">Stop Loss:</span>
+                        <span className="text-red-400 font-semibold">
+                          ${position.stop_loss.toFixed(6)} ({(position.stop_loss_pct * 100).toFixed(1)}%)
+                        </span>
+                      </div>
+                    )}
+                    {position.trailing_stop_enabled && (
+                      <div className="flex items-center gap-1 text-xs text-purple-400">
+                        <span>🎯 Trailing Stop Active</span>
+                      </div>
+                    )}
                     <div className="text-xs text-slate-500">
                       Opened: {new Date(position.opened_at).toLocaleTimeString()}
                     </div>
