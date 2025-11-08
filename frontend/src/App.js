@@ -208,6 +208,13 @@ function App() {
                   {botStatus.active_positions_count} Active
                 </Badge>
               )}
+              <Badge 
+                variant="outline" 
+                className="ml-2 border-green-500/50 text-green-400 animate-pulse"
+                data-testid="realtime-badge"
+              >
+                🔴 LIVE DATA
+              </Badge>
             </div>
             
             <div className="flex items-center gap-6">
