@@ -201,14 +201,12 @@ function App() {
                   MULTI-CRYPTO
                 </Badge>
               )}
-              {botStatus?.active_positions_count > 0 && (
-                <Badge 
-                  variant="outline" 
-                  className="ml-2 border-emerald-500/50 text-emerald-400"
-                >
-                  {botStatus.active_positions_count} Active
-                </Badge>
-              )}
+              <Badge 
+                variant="outline" 
+                className={`ml-2 ${botStatus?.active_positions_count > 0 ? "border-emerald-500/50 text-emerald-400" : "border-slate-500/50 text-slate-400"}`}
+              >
+                {botStatus?.active_positions_count || 0}/{botStatus?.max_positions || settings.max_positions} Positions
+              </Badge>
               <Badge 
                 variant="outline" 
                 className="ml-2 border-green-500/50 text-green-400 animate-pulse"
