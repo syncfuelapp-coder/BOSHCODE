@@ -237,6 +237,14 @@ function App() {
           
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Active Positions */}
+            {botStatus?.multi_crypto_enabled && (
+              <ActivePositions 
+                positions={botStatus?.active_positions}
+                cryptoData={botStatus?.crypto_data}
+              />
+            )}
+            
             {/* Crypto Recommendations */}
             <CryptoRecommendations 
               recommendations={cryptoRecommendations}
