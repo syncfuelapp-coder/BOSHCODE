@@ -229,6 +229,11 @@ function App() {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-6">
+        {/* Crypto Watchlist - Full Width */}
+        <div className="mb-6">
+          <CryptoWatchlist recommendations={cryptoRecommendations} />
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-6">
