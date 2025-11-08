@@ -38,6 +38,18 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Available Cryptocurrencies
+AVAILABLE_CRYPTOS = [
+    {"symbol": "BTC/USD", "name": "Bitcoin", "base_price": 50000},
+    {"symbol": "ETH/USD", "name": "Ethereum", "base_price": 3000},
+    {"symbol": "XRP/USD", "name": "Ripple", "base_price": 0.60},
+    {"symbol": "SOL/USD", "name": "Solana", "base_price": 150},
+    {"symbol": "ADA/USD", "name": "Cardano", "base_price": 0.50},
+    {"symbol": "DOGE/USD", "name": "Dogecoin", "base_price": 0.08},
+    {"symbol": "MATIC/USD", "name": "Polygon", "base_price": 0.70},
+    {"symbol": "DOT/USD", "name": "Polkadot", "base_price": 6.0}
+]
+
 # Trading Bot State
 bot_state = {
     "running": False,
@@ -59,7 +71,10 @@ bot_state = {
     "trade_logs": [],
     "market_data": [],
     "recent_trades": [],
-    "sentiment_headlines": []
+    "sentiment_headlines": [],
+    "crypto_recommendations": [],
+    "ml_model_performance": [],
+    "learning_data": []
 }
 
 task = None
