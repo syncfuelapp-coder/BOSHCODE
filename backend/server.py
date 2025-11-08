@@ -500,6 +500,8 @@ async def execute_trade_for_crypto(symbol, recommendation, latest, df):
     
     confidence = round(combined_score * 100, 2)
     
+    # Execute BUY
+    if combined_score > 0.6:
         entry_price = latest['close']
         position_size = portfolio.get_position_size(symbol, bot_state["risk_per_trade"])
         amount = position_size / entry_price
