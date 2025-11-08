@@ -617,7 +617,7 @@ class AdvancedTradingML:
                     prob = prob * 1.1
                     
             return min(prob, 0.95)  # Cap at 95%
-        except:
+        except Exception:
             return 0.5
     
     def get_model_stats(self):
