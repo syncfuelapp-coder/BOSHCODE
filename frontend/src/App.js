@@ -176,8 +176,9 @@ function App() {
               <motion.div
                 animate={{ rotate: isRunning ? 360 : 0 }}
                 transition={{ duration: 2, repeat: isRunning ? Infinity : 0, ease: "linear" }}
+                aria-label="AetherBot Status Indicator"
               >
-                <Zap className="w-8 h-8 text-cyan-400" />
+                <Zap className="w-8 h-8 text-cyan-400" aria-hidden="true" />
               </motion.div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
                 AetherBot
