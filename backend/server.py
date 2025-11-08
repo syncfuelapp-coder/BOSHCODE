@@ -467,11 +467,11 @@ async def execute_multi_crypto_trading():
     for rec in recommendations:
         symbol = rec["symbol"]
         
-        # Generate market data for this crypto
+        # Fetch REAL-TIME market data for this crypto
         if symbol not in bot_state["crypto_data"]:
             bot_state["crypto_data"][symbol] = {}
         
-        market_data = generate_mock_market_data(symbol)
+        market_data = await fetch_real_time_data(symbol)
         bot_state["crypto_data"][symbol]["market_data"] = market_data
         
         # Calculate indicators
