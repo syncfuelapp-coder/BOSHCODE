@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Layers, TrendingUp, TrendingDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const ActivePositions = ({ positions, cryptoData }) => {
+const ActivePositions = ({ positions, cryptoData, maxPositions = 5 }) => {
   const calculatePnL = (symbol, position) => {
     // Get current price from crypto data
     if (cryptoData && cryptoData[symbol] && cryptoData[symbol].market_data) {
