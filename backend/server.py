@@ -590,11 +590,12 @@ class AdvancedTradingML:
 
 ml_model = AdvancedTradingML()
 
-# Multi-Crypto Portfolio Manager
-class PortfolioManager:
+# Advanced Adaptive Portfolio Manager
+class AdaptivePortfolioManager:
     def __init__(self, total_balance):
         self.total_balance = total_balance
-        self.positions = {}  # {symbol: {amount, entry_price, invested}}
+        self.positions = {}  # {symbol: {amount, entry_price, invested, stop_loss, take_profit, trailing_stop, highest_price}}
+        self.closed_trades_profit = []
     
     def can_open_position(self, symbol):
         """Check if we can open a new position"""
@@ -603,39 +604,165 @@ class PortfolioManager:
         # Allow max 5 concurrent positions
         return len(self.positions) < 5
     
-    def get_position_size(self, symbol, risk_pct):
-        """Calculate position size for a crypto"""
-        # Allocate based on available balance and number of positions
+    def calculate_adaptive_position_size(self, symbol, risk_pct, confidence, volatility):
+        """Dynamic position sizing based on AI confidence and volatility"""
+        # Base position size
         max_positions = 5
         available = self.total_balance - sum([p["invested"] for p in self.positions.values()])
-        position_size = available * (risk_pct / 100) / max(1, (max_positions - len(self.positions)))
-        return position_size
+        base_size = available * (risk_pct / 100) / max(1, (max_positions - len(self.positions)))
+        
+        # Confidence multiplier (0.5x to 2x based on ML confidence)
+        confidence_multiplier = 0.5 + (confidence / 100) * 1.5
+        
+        # Volatility adjustment (reduce size in high volatility)
+        volatility_multiplier = 1.0 / (1 + volatility * 10) if volatility > 0 else 1.0
+        
+        # Apply multipliers
+        adaptive_size = base_size * confidence_multiplier * volatility_multiplier
+        
+        # Cap at 30% of available balance for risk management
+        max_size = available * 0.3
+        return min(adaptive_size, max_size)
     
-    def open_position(self, symbol, amount, price):
-        """Open a new position"""
+    def calculate_adaptive_targets(self, entry_price, volatility, momentum, trend_strength, confidence):
+        """Calculate dynamic stop-loss and take-profit based on market conditions"""
+        # Base targets
+        base_stop_pct = 0.03  # 3%
+        base_take_pct = 0.05  # 5%
+        
+        # Volatility adjustment (wider stops in volatile markets)
+        volatility_factor = 1 + (volatility * 20)  # Scale volatility
+        
+        # Momentum adjustment (higher targets with strong momentum)
+        momentum_factor = 1 + abs(momentum) * 2
+        
+        # Trend strength (tighter stops in weak trends)
+        trend_factor = 0.7 + (trend_strength * 0.6)
+        
+        # Confidence adjustment (higher confidence = let winners run)
+        confidence_factor = 0.8 + (confidence / 100) * 0.4
+        
+        # Calculate adaptive stops
+        stop_loss_pct = base_stop_pct * volatility_factor * trend_factor
+        take_profit_pct = base_take_pct * momentum_factor * confidence_factor
+        
+        # Cap extremes
+        stop_loss_pct = max(0.02, min(0.08, stop_loss_pct))  # 2-8%
+        take_profit_pct = max(0.04, min(0.20, take_profit_pct))  # 4-20%
+        
+        stop_loss = entry_price * (1 - stop_loss_pct)
+        take_profit = entry_price * (1 + take_profit_pct)
+        
+        return stop_loss, take_profit, stop_loss_pct, take_profit_pct
+    
+    def open_position(self, symbol, amount, price, stop_loss, take_profit, stop_pct, take_pct):
+        """Open position with adaptive targets"""
         invested = amount * price
         self.positions[symbol] = {
             "amount": amount,
             "entry_price": price,
             "invested": invested,
+            "stop_loss": stop_loss,
+            "take_profit": take_profit,
+            "stop_loss_pct": stop_pct,
+            "take_profit_pct": take_pct,
+            "trailing_stop_enabled": True,
+            "highest_price": price,
+            "trailing_stop_pct": stop_pct,  # Start with initial stop %
             "opened_at": datetime.now(timezone.utc).isoformat()
         }
     
+    def update_trailing_stop(self, symbol, current_price):
+        """Update trailing stop as price moves in favorable direction"""
+        if symbol not in self.positions:
+            return
+        
+        pos = self.positions[symbol]
+        
+        # Update highest price
+        if current_price > pos["highest_price"]:
+            pos["highest_price"] = current_price
+            
+            # Tighten trailing stop as profit increases
+            profit_pct = (current_price - pos["entry_price"]) / pos["entry_price"]
+            
+            if profit_pct > 0.10:  # 10%+ profit
+                pos["trailing_stop_pct"] = 0.015  # Tighten to 1.5%
+            elif profit_pct > 0.05:  # 5%+ profit
+                pos["trailing_stop_pct"] = 0.02  # Tighten to 2%
+            
+            # Update stop loss
+            new_stop = pos["highest_price"] * (1 - pos["trailing_stop_pct"])
+            pos["stop_loss"] = max(pos["stop_loss"], new_stop)  # Only move up
+    
+    def should_close_position(self, symbol, current_price, recommendation):
+        """Adaptive exit logic"""
+        if symbol not in self.positions:
+            return False, None
+        
+        pos = self.positions[symbol]
+        
+        # Update trailing stop
+        self.update_trailing_stop(symbol, current_price)
+        
+        # Check stop loss (trailing or fixed)
+        if current_price <= pos["stop_loss"]:
+            return True, "Trailing Stop Loss"
+        
+        # Check take profit
+        if current_price >= pos["take_profit"]:
+            return True, "Take Profit Target"
+        
+        # Adaptive exit: weak signal after good profit
+        profit_pct = (current_price - pos["entry_price"]) / pos["entry_price"]
+        if profit_pct > 0.03 and recommendation["opportunity_score"] < 40:
+            return True, "Signal Weakened"
+        
+        # Risk management: cut losses quickly if signal deteriorates
+        if profit_pct < -0.01 and recommendation["recommendation"] == "SELL":
+            return True, "Signal Reversal"
+        
+        return False, None
+    
     def close_position(self, symbol, exit_price):
-        """Close a position and return profit"""
+        """Close position and track performance"""
         if symbol not in self.positions:
             return 0
         
         pos = self.positions[symbol]
         profit = (exit_price - pos["entry_price"]) * pos["amount"]
+        profit_pct = (exit_price - pos["entry_price"]) / pos["entry_price"] * 100
+        
+        # Track for analytics
+        self.closed_trades_profit.append({
+            "symbol": symbol,
+            "profit": profit,
+            "profit_pct": profit_pct,
+            "hold_time": datetime.now(timezone.utc).isoformat()
+        })
+        
         del self.positions[symbol]
         return profit
     
     def get_active_positions(self):
         """Get all active positions"""
         return self.positions
+    
+    def get_performance_stats(self):
+        """Get trading performance statistics"""
+        if not self.closed_trades_profit:
+            return {}
+        
+        avg_profit_pct = np.mean([t["profit_pct"] for t in self.closed_trades_profit])
+        win_rate = len([t for t in self.closed_trades_profit if t["profit"] > 0]) / len(self.closed_trades_profit)
+        
+        return {
+            "avg_profit_pct": avg_profit_pct,
+            "win_rate": win_rate,
+            "total_trades": len(self.closed_trades_profit)
+        }
 
-portfolio = PortfolioManager(100.0)
+portfolio = AdaptivePortfolioManager(100.0)
 
 # Multi-Crypto Trading Logic
 async def execute_multi_crypto_trading():
