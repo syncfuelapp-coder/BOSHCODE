@@ -605,10 +605,9 @@ class AdaptivePortfolioManager:
         # Allow configurable max concurrent positions
         return len(self.positions) < max_positions
     
-    def calculate_adaptive_position_size(self, symbol, risk_pct, confidence, volatility):
+    def calculate_adaptive_position_size(self, symbol, risk_pct, confidence, volatility, max_positions=5):
         """Dynamic position sizing based on AI confidence and volatility"""
         # Base position size
-        max_positions = 5
         available = self.total_balance - sum([p["invested"] for p in self.positions.values()])
         base_size = available * (risk_pct / 100) / max(1, (max_positions - len(self.positions)))
         
