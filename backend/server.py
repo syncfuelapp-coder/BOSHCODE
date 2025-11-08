@@ -1142,7 +1142,7 @@ async def reset_bot():
     bot_state["crypto_data"] = {}
     
     # Reset portfolio
-    portfolio = PortfolioManager(100.0)
+    portfolio = AdaptivePortfolioManager(100.0)
     
     return {"status": "reset", "message": "Bot reset to £100 demo balance"}
 
