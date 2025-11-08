@@ -81,14 +81,9 @@ async def fetch_top_cryptos(limit=200):
         return get_fallback_crypto_list()
 
 def get_fallback_crypto_list():
-    """Fallback list if API fails"""
-    return [
-        {"symbol": "BTC/USD", "name": "Bitcoin", "coin_id": "bitcoin", "market_cap": 2000000000000, "volume_24h": 50000000000, "price_change_24h": 0, "current_price": 100000},
-        {"symbol": "ETH/USD", "name": "Ethereum", "coin_id": "ethereum", "market_cap": 400000000000, "volume_24h": 20000000000, "price_change_24h": 0, "current_price": 3500},
-        {"symbol": "XRP/USD", "name": "Ripple", "coin_id": "ripple", "market_cap": 100000000000, "volume_24h": 5000000000, "price_change_24h": 0, "current_price": 2.0},
-        {"symbol": "BNB/USD", "name": "Binance Coin", "coin_id": "binancecoin", "market_cap": 90000000000, "volume_24h": 3000000000, "price_change_24h": 0, "current_price": 600},
-        {"symbol": "SOL/USD", "name": "Solana", "coin_id": "solana", "market_cap": 80000000000, "volume_24h": 4000000000, "price_change_24h": 0, "current_price": 150}
-    ]
+    """Fallback list if API fails - Uses comprehensive 200+ coin database"""
+    logger.info(f"📦 Using fallback crypto database with {len(TOP_200_CRYPTOS)} coins")
+    return TOP_200_CRYPTOS
 
 # Smart Filter: Identify hot coins based on multiple factors
 def smart_filter_hot_coins(all_cryptos, top_n=20):
