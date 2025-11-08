@@ -1190,38 +1190,6 @@ async def get_ml_stats():
     stats = ml_model.get_model_stats()
     return {"ml_stats": stats}
 
-@api_router.get("/crypto/list")
-async def get_crypto_list():
-    """Get list of available cryptocurrencies"""
-    return {"cryptos": AVAILABLE_CRYPTOS}
-
-@api_router.get("/crypto/recommendations")
-async def get_crypto_recommendations():
-    """Get AI-powered crypto recommendations based on worldwide news"""
-    try:
-        if not bot_state["crypto_recommendations"] or random.random() < 0.3:  # Refresh 30% of the time
-            bot_state["crypto_recommendations"] = await analyze_crypto_opportunities()
-        return {"recommendations": bot_state["crypto_recommendations"]}
-    except Exception as e:
-        logger.error(f"Error getting recommendations: {e}")
-        return {"recommendations": []}
-
-@api_router.post("/crypto/switch")
-async def switch_crypto(data: dict):
-    """Switch to a different cryptocurrency"""
-    symbol = data.get("symbol")
-    if symbol and any(c["symbol"] == symbol for c in AVAILABLE_CRYPTOS):
-        bot_state["current_market"] = symbol
-        bot_state["market_data"] = generate_mock_market_data(symbol)
-        return {"status": "success", "current_market": symbol}
-    return {"status": "error", "message": "Invalid crypto symbol"}
-
-@api_router.get("/ml/stats")
-async def get_ml_stats():
-    """Get machine learning model statistics"""
-    stats = ml_model.get_model_stats()
-    return {"ml_stats": stats}
-
 # Include the router in the main app
 app.include_router(api_router)
 
