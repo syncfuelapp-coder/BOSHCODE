@@ -33,6 +33,8 @@ function App() {
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [marketData, setMarketData] = useState([]);
+  const [cryptoRecommendations, setCryptoRecommendations] = useState([]);
+  const [mlStats, setMlStats] = useState(null);
 
   const fetchBotStatus = async () => {
     try {
