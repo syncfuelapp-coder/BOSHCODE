@@ -302,11 +302,14 @@ async def fetch_real_time_data(symbol="BTC/USD"):
 # Fallback Mock Data (if API fails)
 def generate_fallback_data(symbol="BTC/USD"):
     """Fallback to simulated data if API fails"""
-    base_price = 50000
-    for crypto in AVAILABLE_CRYPTOS:
-        if crypto["symbol"] == symbol:
-            base_price = crypto["base_price"]
-            break
+    # Default prices for major cryptos
+    price_defaults = {
+        "BTC/USD": 100000, "ETH/USD": 3500, "XRP/USD": 2.0, "BNB/USD": 600,
+        "SOL/USD": 150, "ADA/USD": 0.5, "DOGE/USD": 0.08, "TRX/USD": 0.15,
+        "AVAX/USD": 35, "LINK/USD": 15, "DOT/USD": 6, "MATIC/USD": 0.7,
+        "SHIB/USD": 0.00001, "UNI/USD": 10, "LTC/USD": 80, "BCH/USD": 250
+    }
+    base_price = price_defaults.get(symbol, 100)
     
     data = []
     current_price = base_price
