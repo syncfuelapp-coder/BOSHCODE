@@ -114,21 +114,71 @@ class SentimentHeadline(BaseModel):
     sentiment: float
     timestamp: str
 
-# Mock News Generator
-def generate_mock_news():
-    news_templates = [
-        ("CryptoPanic", "Bitcoin surges to new highs amid institutional interest", 0.8),
-        ("NewsAPI", "Federal Reserve hints at policy changes affecting markets", 0.3),
-        ("Twitter/X", "Major tech company announces blockchain integration", 0.6),
-        ("CryptoPanic", "Regulatory concerns weigh on crypto markets", -0.4),
-        ("NewsAPI", "Global economic outlook improves, stocks rally", 0.7),
-        ("Twitter/X", "Whale movements detected in major cryptocurrency", 0.5),
-        ("CryptoPanic", "Exchange outage raises security concerns", -0.6),
-        ("NewsAPI", "Inflation data comes in better than expected", 0.4),
-        ("Twitter/X", "Top analyst predicts market correction", -0.3),
-        ("CryptoPanic", "New ETF approval boosts market sentiment", 0.9)
+# Mock News Generator with Crypto-specific news
+def generate_mock_news(crypto_symbol=None):
+    general_news = [
+        ("NewsAPI", "Federal Reserve hints at policy changes affecting markets", 0.3, ["BTC", "ETH", "XRP"]),
+        ("NewsAPI", "Global economic outlook improves, stocks rally", 0.7, ["BTC", "ETH", "SOL"]),
+        ("NewsAPI", "Inflation data comes in better than expected", 0.4, ["BTC", "ETH"]),
+        ("Reuters", "Central banks worldwide discuss digital currencies", 0.6, ["XRP", "ADA", "DOT"]),
+        ("Bloomberg", "Institutional investors increase crypto holdings", 0.8, ["BTC", "ETH"]),
+        ("CNBC", "Tech stocks surge on AI breakthrough", 0.7, ["SOL", "MATIC"])
     ]
-    return random.choice(news_templates)
+    
+    crypto_specific_news = {
+        "BTC": [
+            ("CryptoPanic", "Bitcoin surges to new highs amid institutional interest", 0.8),
+            ("CryptoPanic", "Bitcoin ETF sees record inflows", 0.9),
+            ("Twitter/X", "Major corporation adds Bitcoin to balance sheet", 0.7),
+            ("CoinDesk", "Bitcoin mining difficulty reaches all-time high", 0.5)
+        ],
+        "ETH": [
+            ("CryptoPanic", "Ethereum network upgrade successful", 0.8),
+            ("Twitter/X", "DeFi protocols on Ethereum hit new TVL record", 0.7),
+            ("CoinDesk", "Ethereum gas fees drop significantly", 0.6),
+            ("CryptoPanic", "Major NFT collection launches on Ethereum", 0.5)
+        ],
+        "XRP": [
+            ("CryptoPanic", "Ripple wins major legal battle, XRP surges", 0.9),
+            ("Reuters", "Banks adopt Ripple's cross-border payment solution", 0.8),
+            ("Twitter/X", "XRP added to major exchange in Asia", 0.7),
+            ("CoinDesk", "Ripple expands partnerships with financial institutions", 0.6)
+        ],
+        "SOL": [
+            ("CryptoPanic", "Solana network reaches record transaction speed", 0.7),
+            ("Twitter/X", "Major DeFi project migrates to Solana", 0.6),
+            ("CoinDesk", "Solana Foundation announces ecosystem grants", 0.5)
+        ],
+        "ADA": [
+            ("CryptoPanic", "Cardano smart contract upgrade goes live", 0.7),
+            ("Twitter/X", "Cardano founder announces major partnership", 0.6),
+            ("CoinDesk", "Cardano stake pool operators reach milestone", 0.5)
+        ],
+        "DOGE": [
+            ("Twitter/X", "Elon Musk tweets about Dogecoin", 0.8),
+            ("CryptoPanic", "Dogecoin payment adoption increases", 0.6),
+            ("Reddit", "Dogecoin community raises funds for charity", 0.5)
+        ]
+    ]
+    
+    negative_news = [
+        ("CryptoPanic", "Regulatory concerns weigh on crypto markets", -0.4, ["BTC", "ETH", "XRP"]),
+        ("CryptoPanic", "Exchange outage raises security concerns", -0.6, ["BTC", "ETH"]),
+        ("Twitter/X", "Top analyst predicts market correction", -0.3, ["BTC", "ETH"]),
+        ("Reuters", "Government announces stricter crypto regulations", -0.5, ["XRP", "BTC"]),
+        ("Bloomberg", "Major crypto exchange faces investigation", -0.7, ["BTC", "ETH"])
+    ]
+    
+    if crypto_symbol:
+        crypto_base = crypto_symbol.split("/")[0]
+        if crypto_base in crypto_specific_news:
+            return random.choice(crypto_specific_news[crypto_base])
+    
+    all_news = general_news + negative_news
+    selected = random.choice(all_news)
+    if len(selected) == 4:
+        return (selected[0], selected[1], selected[2])
+    return selected
 
 # Mock Market Data Generator
 def generate_mock_market_data(base_price=50000, volatility=0.02):
