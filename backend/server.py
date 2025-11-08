@@ -780,7 +780,7 @@ async def check_position_exit(symbol, latest, recommendation):
         bot_state["profit_loss_pct"] = (bot_state["profit_loss"] / bot_state["initial_balance"]) * 100
         bot_state["equity"] = bot_state["balance"]
         
-        # ML learning
+        # ML learning with advanced features
         volatility = latest['atr'] / latest['close']
         features = [
             1 if latest['ema_short'] > latest['ema_long'] else 0,
@@ -789,7 +789,9 @@ async def check_position_exit(symbol, latest, recommendation):
             (recommendation["sentiment"] + 1) / 2,
             volatility
         ]
-        ml_model.add_trade_data(features, result)
+        # Pass market data for advanced feature calculation
+        market_data = bot_state["crypto_data"][symbol].get("market_data", [])
+        ml_model.add_trade_data(features, result, market_data)
         
         trade = {
             "id": str(uuid.uuid4()),
