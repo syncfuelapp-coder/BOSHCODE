@@ -634,9 +634,6 @@ async def get_ml_stats():
     stats = ml_model.get_model_stats()
     return {"ml_stats": stats}
 
-        bot_state["market_data"] = generate_mock_market_data(bot_state["current_market"])
-    return {"data": bot_state["market_data"][-50:]}
-
 @api_router.get("/crypto/list")
 async def get_crypto_list():
     """Get list of available cryptocurrencies"""
