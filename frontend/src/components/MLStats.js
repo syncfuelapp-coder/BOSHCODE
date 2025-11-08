@@ -60,6 +60,14 @@ const MLStats = ({ mlStats }) => {
                 {((mlStats.accuracy || 0) * 100).toFixed(0)}%
               </div>
             </div>
+            {mlStats.improvement !== undefined && (
+              <div className="bg-slate-800/30 rounded-lg p-3">
+                <div className="text-xs text-slate-400 mb-1">Improvement</div>
+                <div className={`text-xl font-bold ${mlStats.improvement >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {mlStats.improvement >= 0 ? '+' : ''}{mlStats.improvement}%
+                </div>
+              </div>
+            )}
           </div>
           
           {mlStats.feature_importance && Object.keys(mlStats.feature_importance).length > 0 && (
