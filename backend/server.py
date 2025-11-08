@@ -503,38 +503,96 @@ class AdvancedTradingML:
         self.profit_factor = 1.0  # Ratio of wins to losses
         self.sharpe_ratio = 0.0  # Risk-adjusted returns
         
+    def detect_market_regime(self, market_data):
+        """Detect current market regime for adaptive strategy"""
+        if len(market_data) < 50:
+            return "neutral"
+        
+        df = pd.DataFrame(market_data[-50:])
+        
+        # Calculate regime indicators
+        returns = df['close'].pct_change()
+        avg_return = returns.mean()
+        volatility = returns.std()
+        
+        # Trend detection (moving average slope)
+        ma_short = df['close'].rolling(10).mean().iloc[-1]
+        ma_long = df['close'].rolling(30).mean().iloc[-1]
+        trend = (ma_short - ma_long) / ma_long if ma_long > 0 else 0
+        
+        # Regime classification
+        if avg_return > 0.001 and trend > 0.02:
+            regime = "bull"  # Strong uptrend
+        elif avg_return < -0.001 and trend < -0.02:
+            regime = "bear"  # Strong downtrend
+        elif volatility > 0.03:
+            regime = "volatile"  # High volatility
+        else:
+            regime = "neutral"  # Range-bound
+        
+        self.market_regime = regime
+        return regime
+    
     def calculate_advanced_features(self, basic_features, market_data):
-        """Calculate advanced features from market data"""
+        """Calculate SUPER advanced features from market data"""
         if len(market_data) < 20:
             return basic_features
         
-        df = pd.DataFrame(market_data[-20:])
+        df = pd.DataFrame(market_data[-50:] if len(market_data) >= 50 else market_data)
         
-        # Price momentum features
-        price_change_5 = (df['close'].iloc[-1] - df['close'].iloc[-5]) / df['close'].iloc[-5]
-        price_change_10 = (df['close'].iloc[-1] - df['close'].iloc[-10]) / df['close'].iloc[-10]
+        # Price momentum features (multiple timeframes)
+        price_change_5 = (df['close'].iloc[-1] - df['close'].iloc[-5]) / df['close'].iloc[-5] if len(df) > 5 else 0
+        price_change_10 = (df['close'].iloc[-1] - df['close'].iloc[-10]) / df['close'].iloc[-10] if len(df) > 10 else 0
+        price_change_20 = (df['close'].iloc[-1] - df['close'].iloc[-20]) / df['close'].iloc[-20] if len(df) > 20 else 0
         
-        # Volume features
+        # Volume features (institutional activity detection)
         volume_avg = df['volume'].mean()
         volume_current = df['volume'].iloc[-1]
         volume_ratio = volume_current / volume_avg if volume_avg > 0 else 1
+        volume_trend = (df['volume'].iloc[-5:].mean() / df['volume'].iloc[-20:-5].mean()) if len(df) > 20 else 1
         
-        # Volatility features
+        # Volatility features (risk assessment)
         price_std = df['close'].std()
         price_mean = df['close'].mean()
         volatility_coef = price_std / price_mean if price_mean > 0 else 0
         
-        # Trend strength
+        # Volatility regime (expanding vs contracting)
+        recent_vol = df['close'].iloc[-10:].std() if len(df) > 10 else 0
+        older_vol = df['close'].iloc[-20:-10].std() if len(df) > 20 else 0
+        vol_expansion = (recent_vol / older_vol) if older_vol > 0 else 1
+        
+        # Trend strength & quality
         trend_strength = abs(price_change_10)
+        
+        # Price action patterns
+        higher_highs = 1 if df['high'].iloc[-1] > df['high'].iloc[-5:].max() else 0
+        lower_lows = 1 if df['low'].iloc[-1] < df['low'].iloc[-5:].min() else 0
+        
+        # Market regime encoding
+        regime_bull = 1 if self.market_regime == "bull" else 0
+        regime_bear = 1 if self.market_regime == "bear" else 0
+        regime_volatile = 1 if self.market_regime == "volatile" else 0
+        
+        # Performance metrics
+        profit_factor_norm = min(self.profit_factor / 3, 1)  # Normalize to 0-1
         
         # Extended features: [basic + advanced]
         advanced_features = list(basic_features) + [
             price_change_5,
             price_change_10,
+            price_change_20,
             volume_ratio,
+            volume_trend,
             volatility_coef,
+            vol_expansion,
             trend_strength,
-            self.win_streak / 10,  # Normalized streak
+            higher_highs,
+            lower_lows,
+            regime_bull,
+            regime_bear,
+            regime_volatile,
+            profit_factor_norm,
+            self.win_streak / 10,
             self.loss_streak / 10
         ]
         
