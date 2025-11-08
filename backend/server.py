@@ -242,19 +242,12 @@ def generate_mock_news(crypto_symbol=None):
 async def fetch_real_time_data(symbol="BTC/USD"):
     """Fetch real-time crypto data from CoinGecko API (Free, no auth required)"""
     try:
-        # Map symbols to CoinGecko IDs
-        symbol_map = {
-            "BTC/USD": "bitcoin",
-            "ETH/USD": "ethereum",
-            "XRP/USD": "ripple",
-            "SOL/USD": "solana",
-            "ADA/USD": "cardano",
-            "DOGE/USD": "dogecoin",
-            "MATIC/USD": "matic-network",
-            "DOT/USD": "polkadot"
-        }
-        
-        coin_id = symbol_map.get(symbol, "bitcoin")
+        # Find coin_id from AVAILABLE_CRYPTOS
+        coin_id = "bitcoin"
+        for crypto in AVAILABLE_CRYPTOS:
+            if crypto["symbol"] == symbol:
+                coin_id = crypto["coin_id"]
+                break
         
         async with aiohttp.ClientSession() as session:
             # Get current price
