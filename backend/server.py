@@ -500,75 +500,98 @@ async def execute_trade_for_crypto(symbol, recommendation, latest, df):
     
     confidence = round(combined_score * 100, 2)
     
-    # Execute BUY
-    if combined_score > 0.6:
-        action = "BUY"
         entry_price = latest['close']
-        stop_loss = entry_price - latest['atr'] * 2
-        take_profit = entry_price + latest['atr'] * 3
+        position_size = portfolio.get_position_size(symbol, bot_state["risk_per_trade"])
+        amount = position_size / entry_price
         
-        # Prepare features for ML learning
-        features = [
-            1 if ema_crossover else 0,
-            latest['rsi'] / 100,
-            1 if macd_signal else 0,
-            (ai_sentiment + 1) / 2,
-            volatility
-        ]
+        # Open position
+        portfolio.open_position(symbol, amount, entry_price)
+        bot_state["balance"] -= position_size
         
-        # Simulate trade outcome (ML model influences win rate over time)
-        base_win_chance = 0.66  # 66% base win rate
-        if ml_model.is_trained:
-            ml_win_prob = ml_model.predict_trade_success(features)
-            # Blend base win rate with ML prediction
-            win_chance = base_win_chance * 0.3 + ml_win_prob * 0.7
-        else:
-            win_chance = base_win_chance
+        bot_state["trade_logs"].append(f"[{datetime.now(timezone.utc).isoformat()[:19]}] 🟢 OPENED {symbol} @ ${round(entry_price, 6)} | Amount: {round(amount, 6)} | Score: {confidence}%")
+        bot_state["trade_logs"] = bot_state["trade_logs"][-30:]
         
-        outcome = "WIN" if random.random() < win_chance else "LOSS"
+        # Update active positions
+        bot_state["active_positions"] = portfolio.get_active_positions()
+
+# Check and close positions
+async def check_position_exit(symbol, latest, recommendation):
+    global bot_state, portfolio
+    
+    if symbol not in portfolio.positions:
+        return
+    
+    pos = portfolio.positions[symbol]
+    current_price = latest['close']
+    entry_price = pos["entry_price"]
+    profit_pct = ((current_price - entry_price) / entry_price) * 100
+    
+    # Exit conditions
+    should_exit = False
+    exit_reason = ""
+    
+    # Take profit at 5%
+    if profit_pct >= 5:
+        should_exit = True
+        exit_reason = "Take Profit"
+    
+    # Stop loss at -3%
+    elif profit_pct <= -3:
+        should_exit = True
+        exit_reason = "Stop Loss"
+    
+    # Exit if recommendation turns to SELL
+    elif recommendation["recommendation"] in ["SELL"] or recommendation["opportunity_score"] < 40:
+        should_exit = True
+        exit_reason = "Weak Signal"
+    
+    if should_exit:
+        profit = portfolio.close_position(symbol, current_price)
+        bot_state["balance"] += pos["invested"] + profit
         
-        risk_amount = bot_state["balance"] * (bot_state["risk_per_trade"] / 100)
-        
-        if outcome == "WIN":
-            profit = risk_amount * 1.5
-            bot_state["balance"] += profit
+        result = "WIN" if profit > 0 else "LOSS"
+        if profit > 0:
             bot_state["wins"] += 1
-            result = "WIN"
         else:
-            profit = -risk_amount
-            bot_state["balance"] += profit
             bot_state["losses"] += 1
-            result = "LOSS"
-        
-        # Add to ML training data for continuous learning
-        ml_model.add_trade_data(features, result)
         
         bot_state["trades_executed"] += 1
         bot_state["profit_loss"] = bot_state["balance"] - bot_state["initial_balance"]
         bot_state["profit_loss_pct"] = (bot_state["profit_loss"] / bot_state["initial_balance"]) * 100
         bot_state["equity"] = bot_state["balance"]
         
+        # ML learning
+        volatility = latest['atr'] / latest['close']
+        features = [
+            1 if latest['ema_short'] > latest['ema_long'] else 0,
+            latest['rsi'] / 100,
+            1 if latest['macd'] > latest['macd_signal'] else 0,
+            (recommendation["sentiment"] + 1) / 2,
+            volatility
+        ]
+        ml_model.add_trade_data(features, result)
+        
         trade = {
             "id": str(uuid.uuid4()),
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "symbol": bot_state["current_market"],
-            "action": action,
-            "price": round(entry_price, 6),
-            "amount": round(risk_amount / entry_price, 6),
+            "symbol": symbol,
+            "action": "CLOSE",
+            "price": round(current_price, 6),
+            "amount": pos["amount"],
             "result": result,
             "profit_loss": round(profit, 2),
-            "reason": f"EMA: {ema_crossover}, RSI: {round(latest['rsi'], 2)}, Sent: {round(ai_sentiment, 2)}, ML: {ml_model.is_trained}",
-            "ai_confidence": bot_state["ai_confidence"]
+            "reason": f"{exit_reason} | P/L: {round(profit_pct, 2)}%",
+            "ai_confidence": 0
         }
         
         bot_state["recent_trades"].insert(0, trade)
         bot_state["recent_trades"] = bot_state["recent_trades"][:10]
         
-        bot_state["trade_logs"].append(f"[{trade['timestamp'][:19]}] {action} {trade['symbol']} @ ${trade['price']} - {result} ({'+' if profit > 0 else ''}{round(profit, 2)}£)")
-        bot_state["trade_logs"] = bot_state["trade_logs"][-20:]
+        bot_state["trade_logs"].append(f"[{trade['timestamp'][:19]}] 🔴 CLOSED {symbol} @ ${round(current_price, 6)} - {result} ({'+' if profit > 0 else ''}{round(profit, 2)}£) | {exit_reason}")
+        bot_state["trade_logs"] = bot_state["trade_logs"][-30:]
         
-        # Save to DB (skip _id field to avoid serialization issues in demo mode)
-        # await db.trades.insert_one(trade)
+        # Update active positions
+        bot_state["active_positions"] = portfolio.get_active_positions()
 
 # Bot Loop
 async def bot_loop():
