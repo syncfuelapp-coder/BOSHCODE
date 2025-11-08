@@ -803,7 +803,7 @@ async def execute_multi_crypto_trading():
         
         if should_trade and technical_score > 0.5:
             # Open new position if we don't have one
-            if portfolio.can_open_position(symbol):
+            if portfolio.can_open_position(symbol, bot_state["max_positions"]):
                 await execute_trade_for_crypto(symbol, rec, latest, df)
             # Or check existing position for exit
             elif symbol in portfolio.positions:
