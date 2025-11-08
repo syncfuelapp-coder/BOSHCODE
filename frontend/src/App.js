@@ -138,6 +138,17 @@ function App() {
     }
   };
 
+  const handleSelectCrypto = async (symbol) => {
+    try {
+      await axios.post(`${API}/crypto/switch`, { symbol });
+      toast.success(`Switched to ${symbol}`);
+      fetchBotStatus();
+      fetchMarketData();
+    } catch (error) {
+      toast.error("Failed to switch cryptocurrency");
+    }
+  };
+
   const getProfitColor = (value) => {
     if (value > 0) return "text-emerald-400";
     if (value < 0) return "text-red-400";
