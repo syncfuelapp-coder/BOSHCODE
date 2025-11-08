@@ -159,7 +159,7 @@ def generate_mock_news(crypto_symbol=None):
             ("CryptoPanic", "Dogecoin payment adoption increases", 0.6),
             ("Reddit", "Dogecoin community raises funds for charity", 0.5)
         ]
-    ]
+    }
     
     negative_news = [
         ("CryptoPanic", "Regulatory concerns weigh on crypto markets", -0.4, ["BTC", "ETH", "XRP"]),
