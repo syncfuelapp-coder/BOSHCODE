@@ -145,6 +145,7 @@ class BotSettings(BaseModel):
     current_market: Optional[str] = "BTC/USD"
     ai_mode_enabled: Optional[bool] = True
     sentiment_weight: Optional[float] = 0.5
+    max_positions: Optional[int] = 5
 
 class Trade(BaseModel):
     model_config = ConfigDict(extra="ignore")
