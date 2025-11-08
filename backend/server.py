@@ -1059,9 +1059,9 @@ async def check_position_exit(symbol, latest, recommendation):
             (recommendation["sentiment"] + 1) / 2,
             volatility
         ]
-        # Pass market data for advanced feature calculation
+        # Pass market data and profit for advanced feature calculation
         market_data = bot_state["crypto_data"][symbol].get("market_data", [])
-        ml_model.add_trade_data(features, result, market_data)
+        ml_model.add_trade_data(features, result, market_data, profit)
         
         trade = {
             "id": str(uuid.uuid4()),
