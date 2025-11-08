@@ -598,15 +598,20 @@ class AdvancedTradingML:
         
         return advanced_features
         
-    def add_trade_data(self, features, result, market_data=None):
-        """Add trade data with advanced features"""
+    def add_trade_data(self, features, result, market_data=None, profit_amount=0):
+        """Add trade data with advanced features and profit tracking"""
+        # Detect market regime
+        if market_data and len(market_data) >= 50:
+            self.detect_market_regime(market_data)
+        
         # Calculate advanced features if market data provided
         if market_data and len(market_data) >= 20:
             features = self.calculate_advanced_features(features, market_data)
         
         self.training_data.append({
             "features": features,
-            "result": 1 if result == "WIN" else 0
+            "result": 1 if result == "WIN" else 0,
+            "profit": profit_amount
         })
         
         # Update streaks
@@ -616,6 +621,13 @@ class AdvancedTradingML:
         else:
             self.loss_streak += 1
             self.win_streak = 0
+        
+        # Calculate profit factor
+        wins = [t for t in self.training_data if t["result"] == 1]
+        losses = [t for t in self.training_data if t["result"] == 0]
+        total_profit = sum([t.get("profit", 0) for t in wins])
+        total_loss = abs(sum([t.get("profit", 0) for t in losses]))
+        self.profit_factor = total_profit / total_loss if total_loss > 0 else 1.0
         
         # Retrain more frequently for faster learning
         if len(self.training_data) >= 5:
