@@ -861,7 +861,8 @@ async def execute_trade_for_crypto(symbol, recommendation, latest, df):
             symbol, 
             bot_state["risk_per_trade"],
             confidence,
-            volatility
+            volatility,
+            bot_state["max_positions"]
         )
         amount = position_size / entry_price
         
