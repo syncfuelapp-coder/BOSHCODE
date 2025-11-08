@@ -379,66 +379,166 @@ async def analyze_crypto_opportunities():
             })
         return simple_recs
 
-# Enhanced Machine Learning Model
-class AdaptiveTradingML:
+# Advanced Machine Learning Model with Deep Features
+class AdvancedTradingML:
     def __init__(self):
-        self.model = RandomForestClassifier(n_estimators=100, random_state=42)
+        # Ensemble of models for better predictions
+        self.rf_model = RandomForestClassifier(n_estimators=200, max_depth=10, random_state=42)
         self.is_trained = False
         self.training_data = []
         self.feature_importance = {}
+        self.win_streak = 0
+        self.loss_streak = 0
+        self.performance_history = []
         
-    def add_trade_data(self, features, result):
-        """Add trade data for learning"""
+    def calculate_advanced_features(self, basic_features, market_data):
+        """Calculate advanced features from market data"""
+        if len(market_data) < 20:
+            return basic_features
+        
+        df = pd.DataFrame(market_data[-20:])
+        
+        # Price momentum features
+        price_change_5 = (df['close'].iloc[-1] - df['close'].iloc[-5]) / df['close'].iloc[-5]
+        price_change_10 = (df['close'].iloc[-1] - df['close'].iloc[-10]) / df['close'].iloc[-10]
+        
+        # Volume features
+        volume_avg = df['volume'].mean()
+        volume_current = df['volume'].iloc[-1]
+        volume_ratio = volume_current / volume_avg if volume_avg > 0 else 1
+        
+        # Volatility features
+        price_std = df['close'].std()
+        price_mean = df['close'].mean()
+        volatility_coef = price_std / price_mean if price_mean > 0 else 0
+        
+        # Trend strength
+        trend_strength = abs(price_change_10)
+        
+        # Extended features: [basic + advanced]
+        advanced_features = list(basic_features) + [
+            price_change_5,
+            price_change_10,
+            volume_ratio,
+            volatility_coef,
+            trend_strength,
+            self.win_streak / 10,  # Normalized streak
+            self.loss_streak / 10
+        ]
+        
+        return advanced_features
+        
+    def add_trade_data(self, features, result, market_data=None):
+        """Add trade data with advanced features"""
+        # Calculate advanced features if market data provided
+        if market_data and len(market_data) >= 20:
+            features = self.calculate_advanced_features(features, market_data)
+        
         self.training_data.append({
             "features": features,
             "result": 1 if result == "WIN" else 0
         })
         
-        # Retrain when we have enough data
-        if len(self.training_data) >= 10:
+        # Update streaks
+        if result == "WIN":
+            self.win_streak += 1
+            self.loss_streak = 0
+        else:
+            self.loss_streak += 1
+            self.win_streak = 0
+        
+        # Retrain more frequently for faster learning
+        if len(self.training_data) >= 5:
             self.retrain()
     
     def retrain(self):
-        """Retrain the model with latest data"""
-        if len(self.training_data) < 10:
+        """Retrain with adaptive learning"""
+        if len(self.training_data) < 5:
             return
         
-        X = [d["features"] for d in self.training_data[-100:]]  # Use last 100 trades
-        y = [d["result"] for d in self.training_data[-100:]]
+        # Use sliding window of last 150 trades for adaptive learning
+        X = [d["features"] for d in self.training_data[-150:]]
+        y = [d["result"] for d in self.training_data[-150:]]
         
-        self.model.fit(X, y)
+        # Ensure all feature vectors have same length
+        min_len = min(len(x) for x in X)
+        X = [x[:min_len] for x in X]
+        
+        self.rf_model.fit(X, y)
         self.is_trained = True
         
-        # Store feature importance
-        feature_names = ["ema_cross", "rsi", "macd", "sentiment", "volatility"]
-        self.feature_importance = dict(zip(feature_names, self.model.feature_importances_))
+        # Calculate and store feature importance
+        feature_names = ["ema", "rsi", "macd", "sentiment", "volatility", 
+                        "momentum_5", "momentum_10", "volume", "volatility_coef", 
+                        "trend", "win_streak", "loss_streak"][:min_len]
+        self.feature_importance = dict(zip(feature_names, self.rf_model.feature_importances_[:min_len]))
         
-        logger.info(f"ML model retrained with {len(self.training_data)} trades. Accuracy: {self.model.score(X, y):.2f}")
+        # Track performance
+        accuracy = self.rf_model.score(X, y)
+        self.performance_history.append(accuracy)
+        
+        logger.info(f"🧠 ML RETRAINED: {len(self.training_data)} trades | Accuracy: {accuracy*100:.1f}%")
     
-    def predict_trade_success(self, features):
-        """Predict probability of trade success"""
+    def predict_trade_success(self, features, market_data=None):
+        """Predict with confidence adjustment"""
         if not self.is_trained:
-            return 0.5  # Default 50% if not trained
+            return 0.55  # Slightly optimistic default
         
-        prob = self.model.predict_proba([features])[0][1]
-        return prob
+        # Calculate advanced features
+        if market_data and len(market_data) >= 20:
+            features = self.calculate_advanced_features(features, market_data)
+        
+        # Ensure feature length matches training
+        if self.training_data:
+            trained_len = len(self.training_data[0]["features"])
+            features = features[:trained_len]
+        
+        try:
+            prob = self.rf_model.predict_proba([features])[0][1]
+            
+            # Adjust based on recent performance
+            if len(self.performance_history) > 5:
+                recent_accuracy = np.mean(self.performance_history[-5:])
+                # Boost confidence if model is performing well
+                if recent_accuracy > 0.7:
+                    prob = prob * 1.1
+                    
+            return min(prob, 0.95)  # Cap at 95%
+        except:
+            return 0.5
     
     def get_model_stats(self):
-        """Get model performance statistics"""
+        """Enhanced model statistics"""
         if not self.is_trained:
-            return {"status": "Not trained yet", "trades_needed": 10 - len(self.training_data)}
+            return {
+                "status": "Learning Phase",
+                "trades_needed": max(0, 5 - len(self.training_data)),
+                "phase": "Collecting initial data"
+            }
         
-        recent_trades = self.training_data[-50:]
+        recent_trades = self.training_data[-100:]
         wins = sum([1 for t in recent_trades if t["result"] == 1])
+        accuracy = wins / len(recent_trades) if recent_trades else 0
+        
+        # Calculate improvement
+        improvement = 0
+        if len(self.performance_history) >= 10:
+            old_avg = np.mean(self.performance_history[:5])
+            new_avg = np.mean(self.performance_history[-5:])
+            improvement = ((new_avg - old_avg) / old_avg * 100) if old_avg > 0 else 0
         
         return {
-            "status": "Active",
+            "status": "Active Learning",
             "total_trades_learned": len(self.training_data),
-            "accuracy": wins / len(recent_trades) if recent_trades else 0,
-            "feature_importance": self.feature_importance
+            "accuracy": accuracy,
+            "feature_importance": self.feature_importance,
+            "win_streak": self.win_streak,
+            "loss_streak": self.loss_streak,
+            "improvement": round(improvement, 1),
+            "confidence_level": "High" if accuracy > 0.7 else "Medium" if accuracy > 0.55 else "Building"
         }
 
-ml_model = AdaptiveTradingML()
+ml_model = AdvancedTradingML()
 
 # Multi-Crypto Portfolio Manager
 class PortfolioManager:
