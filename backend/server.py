@@ -369,16 +369,114 @@ class AdaptiveTradingML:
 
 ml_model = AdaptiveTradingML()
 
-# Trading Logic with ML Enhancement
-async def execute_trade_logic():
-    global bot_state
+# Multi-Crypto Portfolio Manager
+class PortfolioManager:
+    def __init__(self, total_balance):
+        self.total_balance = total_balance
+        self.positions = {}  # {symbol: {amount, entry_price, invested}}
     
-    # Generate mock data for current market
-    bot_state["market_data"] = generate_mock_market_data(bot_state["current_market"])
+    def can_open_position(self, symbol):
+        """Check if we can open a new position"""
+        if symbol in self.positions:
+            return False
+        # Allow max 5 concurrent positions
+        return len(self.positions) < 5
     
-    # Calculate indicators
-    df = calculate_indicators(bot_state["market_data"])
-    latest = df.iloc[-1]
+    def get_position_size(self, symbol, risk_pct):
+        """Calculate position size for a crypto"""
+        # Allocate based on available balance and number of positions
+        max_positions = 5
+        available = self.total_balance - sum([p["invested"] for p in self.positions.values()])
+        position_size = available * (risk_pct / 100) / max(1, (max_positions - len(self.positions)))
+        return position_size
+    
+    def open_position(self, symbol, amount, price):
+        """Open a new position"""
+        invested = amount * price
+        self.positions[symbol] = {
+            "amount": amount,
+            "entry_price": price,
+            "invested": invested,
+            "opened_at": datetime.now(timezone.utc).isoformat()
+        }
+    
+    def close_position(self, symbol, exit_price):
+        """Close a position and return profit"""
+        if symbol not in self.positions:
+            return 0
+        
+        pos = self.positions[symbol]
+        profit = (exit_price - pos["entry_price"]) * pos["amount"]
+        del self.positions[symbol]
+        return profit
+    
+    def get_active_positions(self):
+        """Get all active positions"""
+        return self.positions
+
+portfolio = PortfolioManager(100.0)
+
+# Multi-Crypto Trading Logic
+async def execute_multi_crypto_trading():
+    global bot_state, portfolio
+    
+    # Get fresh recommendations
+    recommendations = await analyze_crypto_opportunities()
+    bot_state["crypto_recommendations"] = recommendations
+    
+    # Trade on top recommendations
+    for rec in recommendations:
+        symbol = rec["symbol"]
+        
+        # Generate market data for this crypto
+        if symbol not in bot_state["crypto_data"]:
+            bot_state["crypto_data"][symbol] = {}
+        
+        market_data = generate_mock_market_data(symbol)
+        bot_state["crypto_data"][symbol]["market_data"] = market_data
+        
+        # Calculate indicators
+        df = calculate_indicators(market_data)
+        latest = df.iloc[-1]
+        
+        # Check if we should trade this crypto
+        should_trade = False
+        
+        # Strong buy signals
+        if rec["recommendation"] in ["STRONG BUY", "BUY"] and rec["opportunity_score"] >= 70:
+            should_trade = True
+        
+        # Additional technical confirmation
+        ema_crossover = latest['ema_short'] > latest['ema_long']
+        rsi_signal = 30 < latest['rsi'] < 70
+        macd_signal = latest['macd'] > latest['macd_signal']
+        
+        technical_score = (int(ema_crossover) + int(rsi_signal) + int(macd_signal)) / 3
+        
+        if should_trade and technical_score > 0.5:
+            # Open new position if we don't have one
+            if portfolio.can_open_position(symbol):
+                await execute_trade_for_crypto(symbol, rec, latest, df)
+            # Or check existing position for exit
+            elif symbol in portfolio.positions:
+                await check_position_exit(symbol, latest, rec)
+
+# Single Crypto Trade Execution
+async def execute_trade_for_crypto(symbol, recommendation, latest, df):
+    global bot_state, portfolio
+    
+    # Generate news specific to current crypto
+    source, headline, sentiment = generate_mock_news(symbol)
+    news_item = {
+        "source": source,
+        "headline": headline,
+        "sentiment": sentiment,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "crypto": symbol
+    }
+    
+    bot_state["sentiment_headlines"].insert(0, news_item)
+    bot_state["sentiment_headlines"] = bot_state["sentiment_headlines"][:10]
     
     # Generate news specific to current crypto
     source, headline, sentiment = generate_mock_news(bot_state["current_market"])
