@@ -269,8 +269,8 @@ async def execute_trade_logic():
         bot_state["trade_logs"].append(f"[{trade['timestamp'][:19]}] {action} {trade['symbol']} @ ${trade['price']} - {result} ({'+' if profit > 0 else ''}{round(profit, 2)}£)")
         bot_state["trade_logs"] = bot_state["trade_logs"][-20:]
         
-        # Save to DB
-        await db.trades.insert_one(trade)
+        # Save to DB (skip _id field to avoid serialization issues in demo mode)
+        # await db.trades.insert_one(trade)
 
 # Bot Loop
 async def bot_loop():
