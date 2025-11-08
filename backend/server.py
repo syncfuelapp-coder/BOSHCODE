@@ -442,9 +442,27 @@ async def execute_trade_logic():
         stop_loss = entry_price - latest['atr'] * 2
         take_profit = entry_price + latest['atr'] * 3
         
-        # Simulate trade outcome
+        # Prepare features for ML learning
+        features = [
+            1 if ema_crossover else 0,
+            latest['rsi'] / 100,
+            1 if macd_signal else 0,
+            (ai_sentiment + 1) / 2,
+            volatility
+        ]
+        
+        # Simulate trade outcome (ML model influences win rate over time)
+        base_win_chance = 0.66  # 66% base win rate
+        if ml_model.is_trained:
+            ml_win_prob = ml_model.predict_trade_success(features)
+            # Blend base win rate with ML prediction
+            win_chance = base_win_chance * 0.3 + ml_win_prob * 0.7
+        else:
+            win_chance = base_win_chance
+        
+        outcome = "WIN" if random.random() < win_chance else "LOSS"
+        
         risk_amount = bot_state["balance"] * (bot_state["risk_per_trade"] / 100)
-        outcome = random.choice(["WIN", "WIN", "LOSS"])  # 66% win rate
         
         if outcome == "WIN":
             profit = risk_amount * 1.5
@@ -457,6 +475,9 @@ async def execute_trade_logic():
             bot_state["losses"] += 1
             result = "LOSS"
         
+        # Add to ML training data for continuous learning
+        ml_model.add_trade_data(features, result)
+        
         bot_state["trades_executed"] += 1
         bot_state["profit_loss"] = bot_state["balance"] - bot_state["initial_balance"]
         bot_state["profit_loss_pct"] = (bot_state["profit_loss"] / bot_state["initial_balance"]) * 100
@@ -467,11 +488,11 @@ async def execute_trade_logic():
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "symbol": bot_state["current_market"],
             "action": action,
-            "price": round(entry_price, 2),
+            "price": round(entry_price, 6),
             "amount": round(risk_amount / entry_price, 6),
             "result": result,
             "profit_loss": round(profit, 2),
-            "reason": f"EMA Cross: {ema_crossover}, RSI: {round(latest['rsi'], 2)}, Sentiment: {round(ai_sentiment, 2)}",
+            "reason": f"EMA: {ema_crossover}, RSI: {round(latest['rsi'], 2)}, Sent: {round(ai_sentiment, 2)}, ML: {ml_model.is_trained}",
             "ai_confidence": bot_state["ai_confidence"]
         }
         
