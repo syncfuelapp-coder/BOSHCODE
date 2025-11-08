@@ -480,43 +480,28 @@ async def execute_trade_for_crypto(symbol, recommendation, latest, df):
     
     volatility = latest['atr'] / latest['close']
     
-    # AI Sentiment Analysis
-    if bot_state["ai_mode_enabled"]:
-        ai_sentiment = await analyze_sentiment_with_ai(bot_state["sentiment_headlines"])
-    else:
-        ai_sentiment = sentiment
-    
-    bot_state["sentiment_score"] = ai_sentiment
-    
-    # Trading signals
-    ema_crossover = latest['ema_short'] > latest['ema_long']
-    rsi_signal = 30 < latest['rsi'] < 70
-    macd_signal = latest['macd'] > latest['macd_signal']
-    volatility = latest['atr'] / latest['close']
-    
-    # Combine technical and sentiment
-    technical_score = (int(ema_crossover) + int(rsi_signal) + int(macd_signal)) / 3
+    # Calculate combined score
+    ai_sentiment = recommendation["sentiment"]
+    technical_score = (int(latest['ema_short'] > latest['ema_long']) + int(30 < latest['rsi'] < 70) + int(latest['macd'] > latest['macd_signal'])) / 3
     sentiment_contribution = ai_sentiment * bot_state["sentiment_weight"]
-    
     combined_score = (technical_score * (1 - bot_state["sentiment_weight"])) + sentiment_contribution
     
-    # ML Enhancement: Use ML model to adjust confidence
+    # ML Enhancement
     if ml_model.is_trained:
         features = [
-            1 if ema_crossover else 0,
+            1 if latest['ema_short'] > latest['ema_long'] else 0,
             latest['rsi'] / 100,
-            1 if macd_signal else 0,
-            (ai_sentiment + 1) / 2,  # Normalize to 0-1
+            1 if latest['macd'] > latest['macd_signal'] else 0,
+            (ai_sentiment + 1) / 2,
             volatility
         ]
         ml_success_prob = ml_model.predict_trade_success(features)
-        # Adjust combined score based on ML prediction
         combined_score = combined_score * 0.6 + ml_success_prob * 0.4
     
-    bot_state["ai_confidence"] = round(combined_score * 100, 2)
+    confidence = round(combined_score * 100, 2)
     
-    # Execute trade
-    if combined_score > 0.6:  # Buy signal
+    # Execute BUY
+    if combined_score > 0.6:
         action = "BUY"
         entry_price = latest['close']
         stop_loss = entry_price - latest['atr'] * 2
