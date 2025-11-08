@@ -191,6 +191,23 @@ function App() {
               >
                 {botStatus?.mode?.toUpperCase() || "DEMO"}
               </Badge>
+              {botStatus?.multi_crypto_enabled && (
+                <Badge 
+                  variant="outline" 
+                  className="ml-2 border-purple-500/50 text-purple-400"
+                  data-testid="multi-crypto-badge"
+                >
+                  MULTI-CRYPTO
+                </Badge>
+              )}
+              {botStatus?.active_positions_count > 0 && (
+                <Badge 
+                  variant="outline" 
+                  className="ml-2 border-emerald-500/50 text-emerald-400"
+                >
+                  {botStatus.active_positions_count} Active
+                </Badge>
+              )}
             </div>
             
             <div className="flex items-center gap-6">
