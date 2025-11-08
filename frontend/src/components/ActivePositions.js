@@ -122,8 +122,10 @@ const ActivePositions = ({ positions, cryptoData }) => {
       </div>
       
       {positionsArray.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-slate-700/30 text-xs text-slate-500 text-center">
-          Auto-closing at ±5% profit or -3% loss
+        <div className="mt-4 pt-4 border-t border-slate-700/30 text-xs text-slate-400 space-y-1">
+          <div className="text-center font-semibold text-purple-400">🎯 Adaptive Profit Management</div>
+          <div className="text-center">• Dynamic TP: 4-20% | SL: 2-8% based on volatility</div>
+          <div className="text-center">• Trailing stops tighten as profit grows</div>
         </div>
       )}
     </Card>
