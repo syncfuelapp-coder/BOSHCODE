@@ -27,8 +27,8 @@ const ActivePositions = ({ positions, cryptoData }) => {
           <Layers className="w-5 h-5 text-purple-400" />
           Active Positions
         </h3>
-        <Badge variant="outline" className="border-purple-500/50 text-purple-400">
-          {positionsArray.length} / 5
+        <Badge variant="outline" className={`${positionsArray.length >= 5 ? "border-yellow-500/50 text-yellow-400" : "border-purple-500/50 text-purple-400"}`}>
+          {positionsArray.length} / {positions ? Object.keys(positions).length >= 1 ? "∞" : "5" : "5"}
         </Badge>
       </div>
       
