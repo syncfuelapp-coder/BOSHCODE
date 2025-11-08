@@ -236,6 +236,16 @@ function App() {
           
           {/* Right Column */}
           <div className="space-y-6">
+            {/* Crypto Recommendations */}
+            <CryptoRecommendations 
+              recommendations={cryptoRecommendations}
+              onSelectCrypto={handleSelectCrypto}
+              currentMarket={botStatus?.current_market}
+            />
+            
+            {/* ML Stats */}
+            <MLStats mlStats={mlStats} />
+            
             {/* Performance Panel */}
             <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-xl p-6" data-testid="performance-panel">
               <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
