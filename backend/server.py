@@ -1033,7 +1033,8 @@ async def get_bot_status():
         "current_market": bot_state["current_market"],
         "multi_crypto_enabled": bot_state["multi_crypto_enabled"],
         "active_positions": bot_state["active_positions"],
-        "active_positions_count": len(bot_state["active_positions"])
+        "active_positions_count": len(bot_state["active_positions"]),
+        "max_positions": bot_state["max_positions"]
     }
 
 @api_router.put("/bot/settings")
