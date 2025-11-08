@@ -377,19 +377,19 @@ class AdaptiveTradingML:
 
 ml_model = AdaptiveTradingML()
 
-# Trading Logic
+# Trading Logic with ML Enhancement
 async def execute_trade_logic():
     global bot_state
     
-    # Generate mock data
-    bot_state["market_data"] = generate_mock_market_data()
+    # Generate mock data for current market
+    bot_state["market_data"] = generate_mock_market_data(bot_state["current_market"])
     
     # Calculate indicators
     df = calculate_indicators(bot_state["market_data"])
     latest = df.iloc[-1]
     
-    # Generate news
-    source, headline, sentiment = generate_mock_news()
+    # Generate news specific to current crypto
+    source, headline, sentiment = generate_mock_news(bot_state["current_market"])
     news_item = {
         "source": source,
         "headline": headline,
@@ -412,12 +412,27 @@ async def execute_trade_logic():
     ema_crossover = latest['ema_short'] > latest['ema_long']
     rsi_signal = 30 < latest['rsi'] < 70
     macd_signal = latest['macd'] > latest['macd_signal']
+    volatility = latest['atr'] / latest['close']
     
     # Combine technical and sentiment
     technical_score = (int(ema_crossover) + int(rsi_signal) + int(macd_signal)) / 3
     sentiment_contribution = ai_sentiment * bot_state["sentiment_weight"]
     
     combined_score = (technical_score * (1 - bot_state["sentiment_weight"])) + sentiment_contribution
+    
+    # ML Enhancement: Use ML model to adjust confidence
+    if ml_model.is_trained:
+        features = [
+            1 if ema_crossover else 0,
+            latest['rsi'] / 100,
+            1 if macd_signal else 0,
+            (ai_sentiment + 1) / 2,  # Normalize to 0-1
+            volatility
+        ]
+        ml_success_prob = ml_model.predict_trade_success(features)
+        # Adjust combined score based on ML prediction
+        combined_score = combined_score * 0.6 + ml_success_prob * 0.4
+    
     bot_state["ai_confidence"] = round(combined_score * 100, 2)
     
     # Execute trade
