@@ -183,26 +183,6 @@ function App() {
               </h1>
               <Badge 
                 variant="outline" 
-                className={`ml-2 ${
-                  botStatus?.mode === "demo" 
-                    ? "border-cyan-500/50 text-cyan-400" 
-                    : "border-emerald-500/50 text-emerald-400"
-                }`}
-                data-testid="bot-mode-badge"
-              >
-                {botStatus?.mode?.toUpperCase() || "DEMO"}
-              </Badge>
-              {botStatus?.multi_crypto_enabled && (
-                <Badge 
-                  variant="outline" 
-                  className="ml-2 border-purple-500/50 text-purple-400"
-                  data-testid="multi-crypto-badge"
-                >
-                  MULTI-CRYPTO
-                </Badge>
-              )}
-              <Badge 
-                variant="outline" 
                 className={`ml-2 ${botStatus?.active_positions_count > 0 ? "border-emerald-500/50 text-emerald-400" : "border-slate-500/50 text-slate-400"}`}
               >
                 {botStatus?.active_positions_count || 0}/{botStatus?.max_positions || settings.max_positions} Positions
