@@ -848,17 +848,40 @@ async def execute_trade_for_crypto(symbol, recommendation, latest, df):
     
     confidence = round(combined_score * 100, 2)
     
-    # Execute BUY
+    # Execute BUY with adaptive position sizing
     if combined_score > 0.6:
         entry_price = latest['close']
-        position_size = portfolio.get_position_size(symbol, bot_state["risk_per_trade"])
+        
+        # Calculate advanced metrics
+        price_change_10 = (df['close'].iloc[-1] - df['close'].iloc[-10]) / df['close'].iloc[-10] if len(df) >= 10 else 0
+        trend_strength = abs(price_change_10)
+        
+        # Adaptive position sizing
+        position_size = portfolio.calculate_adaptive_position_size(
+            symbol, 
+            bot_state["risk_per_trade"],
+            confidence,
+            volatility
+        )
         amount = position_size / entry_price
         
-        # Open position
-        portfolio.open_position(symbol, amount, entry_price)
+        # Calculate adaptive stop-loss and take-profit
+        stop_loss, take_profit, stop_pct, take_pct = portfolio.calculate_adaptive_targets(
+            entry_price,
+            volatility,
+            price_change_10,
+            trend_strength,
+            confidence
+        )
+        
+        # Open position with adaptive targets
+        portfolio.open_position(symbol, amount, entry_price, stop_loss, take_profit, stop_pct, take_pct)
         bot_state["balance"] -= position_size
         
-        bot_state["trade_logs"].append(f"[{datetime.now(timezone.utc).isoformat()[:19]}] 🟢 OPENED {symbol} @ ${round(entry_price, 6)} | Amount: {round(amount, 6)} | Score: {confidence}%")
+        bot_state["trade_logs"].append(
+            f"[{datetime.now(timezone.utc).isoformat()[:19]}] 🟢 OPENED {symbol} @ ${round(entry_price, 6)} | "
+            f"TP: {round(take_pct*100, 1)}% SL: {round(stop_pct*100, 1)}% | Conf: {round(confidence, 1)}%"
+        )
         bot_state["trade_logs"] = bot_state["trade_logs"][-30:]
         
         # Update active positions
