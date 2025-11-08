@@ -970,6 +970,9 @@ async def check_position_exit(symbol, latest, recommendation):
         bot_state["profit_loss_pct"] = (bot_state["profit_loss"] / bot_state["initial_balance"]) * 100
         bot_state["equity"] = bot_state["balance"]
         
+        # Calculate profit percentage
+        profit_pct = (current_price - pos["entry_price"]) / pos["entry_price"] * 100
+        
         # ML learning with advanced features
         volatility = latest['atr'] / latest['close']
         features = [
