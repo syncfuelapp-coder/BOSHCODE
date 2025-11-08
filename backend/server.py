@@ -132,7 +132,8 @@ bot_state = {
     "learning_data": [],
     "multi_crypto_enabled": True,
     "active_positions": {},
-    "crypto_data": {}
+    "crypto_data": {},
+    "max_positions": 5
 }
 
 task = None
