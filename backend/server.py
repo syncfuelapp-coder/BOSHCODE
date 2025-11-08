@@ -478,17 +478,7 @@ async def execute_trade_for_crypto(symbol, recommendation, latest, df):
     bot_state["sentiment_headlines"].insert(0, news_item)
     bot_state["sentiment_headlines"] = bot_state["sentiment_headlines"][:10]
     
-    # Generate news specific to current crypto
-    source, headline, sentiment = generate_mock_news(bot_state["current_market"])
-    news_item = {
-        "source": source,
-        "headline": headline,
-        "sentiment": sentiment,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-    
-    bot_state["sentiment_headlines"].insert(0, news_item)
-    bot_state["sentiment_headlines"] = bot_state["sentiment_headlines"][:3]
+    volatility = latest['atr'] / latest['close']
     
     # AI Sentiment Analysis
     if bot_state["ai_mode_enabled"]:
