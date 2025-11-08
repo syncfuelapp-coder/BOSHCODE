@@ -18,6 +18,7 @@ import LiveConsole from "@/components/LiveConsole";
 import CryptoRecommendations from "@/components/CryptoRecommendations";
 import MLStats from "@/components/MLStats";
 import ActivePositions from "@/components/ActivePositions";
+import CryptoWatchlist from "@/components/CryptoWatchlist";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
