@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import "@/App.css";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { Play, Square, Settings, RefreshCw, TrendingUp, TrendingDown, Activity, DollarSign, Target, Zap } from "lucide-react";
+import { Play, Square, Settings, RefreshCw, TrendingUp, TrendingDown, Activity, DollarSign, Target, Zap, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
