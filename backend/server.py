@@ -645,23 +645,36 @@ async def stop_bot():
 
 @api_router.get("/bot/status")
 async def get_bot_status():
+    # Calculate total equity (balance + value of open positions)
+    total_equity = bot_state["balance"]
+    for symbol, pos in portfolio.positions.items():
+        # Estimate current value (would use real-time price in production)
+        if symbol in bot_state["crypto_data"] and "market_data" in bot_state["crypto_data"][symbol]:
+            market_data = bot_state["crypto_data"][symbol]["market_data"]
+            if market_data:
+                current_price = market_data[-1]["close"]
+                total_equity += pos["amount"] * current_price
+    
     return {
         "running": bot_state["running"],
         "mode": bot_state["mode"],
         "balance": round(bot_state["balance"], 2),
-        "equity": round(bot_state["equity"], 2),
-        "profit_loss": round(bot_state["profit_loss"], 2),
-        "profit_loss_pct": round(bot_state["profit_loss_pct"], 2),
+        "equity": round(total_equity, 2),
+        "profit_loss": round(total_equity - bot_state["initial_balance"], 2),
+        "profit_loss_pct": round(((total_equity - bot_state["initial_balance"]) / bot_state["initial_balance"]) * 100, 2),
         "ai_confidence": bot_state["ai_confidence"],
         "sentiment_score": round(bot_state["sentiment_score"], 2),
         "trades_executed": bot_state["trades_executed"],
         "wins": bot_state["wins"],
         "losses": bot_state["losses"],
         "win_rate": round((bot_state["wins"] / bot_state["trades_executed"] * 100) if bot_state["trades_executed"] > 0 else 0, 2),
-        "trade_logs": bot_state["trade_logs"][-10:],
+        "trade_logs": bot_state["trade_logs"][-15:],
         "recent_trades": bot_state["recent_trades"][:10],
-        "sentiment_headlines": bot_state["sentiment_headlines"],
-        "current_market": bot_state["current_market"]
+        "sentiment_headlines": bot_state["sentiment_headlines"][:5],
+        "current_market": bot_state["current_market"],
+        "multi_crypto_enabled": bot_state["multi_crypto_enabled"],
+        "active_positions": bot_state["active_positions"],
+        "active_positions_count": len(bot_state["active_positions"])
     }
 
 @api_router.put("/bot/settings")
