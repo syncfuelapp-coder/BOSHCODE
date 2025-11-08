@@ -415,6 +415,30 @@ function App() {
                         </div>
                       </div>
                       
+                      <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                        <label className="text-sm text-purple-400 font-semibold mb-2 block flex items-center gap-2">
+                          <Layers className="w-4 h-4" />
+                          Max Concurrent Positions
+                        </label>
+                        <div className="flex items-center gap-4">
+                          <Slider
+                            value={[settings.max_positions]}
+                            onValueChange={([value]) => setSettings({...settings, max_positions: value})}
+                            min={1}
+                            max={20}
+                            step={1}
+                            className="flex-1"
+                          />
+                          <span className="text-purple-400 font-bold w-12 text-right">{settings.max_positions}</span>
+                        </div>
+                        <div className="mt-2 text-xs text-slate-400">
+                          {settings.max_positions <= 5 && "Conservative (£20 per position)"}
+                          {settings.max_positions > 5 && settings.max_positions <= 10 && "Balanced (£10 per position)"}
+                          {settings.max_positions > 10 && settings.max_positions <= 15 && "Diversified (£6-7 per position)"}
+                          {settings.max_positions > 15 && "Maximum Spread (£5 per position)"}
+                        </div>
+                      </div>
+                      
                       <Button 
                         onClick={handleSaveSettings}
                         className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700"
