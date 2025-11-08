@@ -30,7 +30,8 @@ function App() {
     risk_per_trade: 2,
     current_market: "BTC/USD",
     ai_mode_enabled: true,
-    sentiment_weight: 0.5
+    sentiment_weight: 0.5,
+    max_positions: 5
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [marketData, setMarketData] = useState([]);
