@@ -9,7 +9,7 @@ const MLStats = ({ mlStats }) => {
     return null;
   }
 
-  const isActive = mlStats.status === "Active";
+  const isActive = mlStats.status === "Active Learning";
 
   return (
     <Card className="bg-slate-900/50 border-slate-800/50 backdrop-blur-xl p-6" data-testid="ml-stats">
