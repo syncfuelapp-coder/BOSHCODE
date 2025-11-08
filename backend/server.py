@@ -1050,6 +1050,8 @@ async def update_settings(settings: BotSettings):
         bot_state["ai_mode_enabled"] = settings.ai_mode_enabled
     if settings.sentiment_weight:
         bot_state["sentiment_weight"] = settings.sentiment_weight
+    if settings.max_positions:
+        bot_state["max_positions"] = settings.max_positions
     
     return {"status": "updated", "settings": settings}
 
