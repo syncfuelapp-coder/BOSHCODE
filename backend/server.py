@@ -39,71 +39,120 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Expanded Cryptocurrency List (Top 50+ from CoinGecko)
-AVAILABLE_CRYPTOS = [
-    # Top 10
-    {"symbol": "BTC/USD", "name": "Bitcoin", "coin_id": "bitcoin"},
-    {"symbol": "ETH/USD", "name": "Ethereum", "coin_id": "ethereum"},
-    {"symbol": "XRP/USD", "name": "Ripple", "coin_id": "ripple"},
-    {"symbol": "BNB/USD", "name": "Binance Coin", "coin_id": "binancecoin"},
-    {"symbol": "SOL/USD", "name": "Solana", "coin_id": "solana"},
-    {"symbol": "ADA/USD", "name": "Cardano", "coin_id": "cardano"},
-    {"symbol": "DOGE/USD", "name": "Dogecoin", "coin_id": "dogecoin"},
-    {"symbol": "TRX/USD", "name": "TRON", "coin_id": "tron"},
-    {"symbol": "AVAX/USD", "name": "Avalanche", "coin_id": "avalanche-2"},
-    {"symbol": "LINK/USD", "name": "Chainlink", "coin_id": "chainlink"},
-    
-    # Top 11-20
-    {"symbol": "DOT/USD", "name": "Polkadot", "coin_id": "polkadot"},
-    {"symbol": "MATIC/USD", "name": "Polygon", "coin_id": "matic-network"},
-    {"symbol": "SHIB/USD", "name": "Shiba Inu", "coin_id": "shiba-inu"},
-    {"symbol": "UNI/USD", "name": "Uniswap", "coin_id": "uniswap"},
-    {"symbol": "LTC/USD", "name": "Litecoin", "coin_id": "litecoin"},
-    {"symbol": "BCH/USD", "name": "Bitcoin Cash", "coin_id": "bitcoin-cash"},
-    {"symbol": "ATOM/USD", "name": "Cosmos", "coin_id": "cosmos"},
-    {"symbol": "APT/USD", "name": "Aptos", "coin_id": "aptos"},
-    {"symbol": "FIL/USD", "name": "Filecoin", "coin_id": "filecoin"},
-    {"symbol": "ARB/USD", "name": "Arbitrum", "coin_id": "arbitrum"},
-    
-    # Top 21-30
-    {"symbol": "NEAR/USD", "name": "NEAR Protocol", "coin_id": "near"},
-    {"symbol": "VET/USD", "name": "VeChain", "coin_id": "vechain"},
-    {"symbol": "ALGO/USD", "name": "Algorand", "coin_id": "algorand"},
-    {"symbol": "AAVE/USD", "name": "Aave", "coin_id": "aave"},
-    {"symbol": "GRT/USD", "name": "The Graph", "coin_id": "the-graph"},
-    {"symbol": "SAND/USD", "name": "The Sandbox", "coin_id": "the-sandbox"},
-    {"symbol": "MANA/USD", "name": "Decentraland", "coin_id": "decentraland"},
-    {"symbol": "AXS/USD", "name": "Axie Infinity", "coin_id": "axie-infinity"},
-    {"symbol": "FTM/USD", "name": "Fantom", "coin_id": "fantom"},
-    {"symbol": "XLM/USD", "name": "Stellar", "coin_id": "stellar"},
-    
-    # DeFi & Gaming (31-40)
-    {"symbol": "CRV/USD", "name": "Curve DAO", "coin_id": "curve-dao-token"},
-    {"symbol": "SUSHI/USD", "name": "SushiSwap", "coin_id": "sushi"},
-    {"symbol": "COMP/USD", "name": "Compound", "coin_id": "compound-governance-token"},
-    {"symbol": "YFI/USD", "name": "yearn.finance", "coin_id": "yearn-finance"},
-    {"symbol": "SNX/USD", "name": "Synthetix", "coin_id": "synthetix-network-token"},
-    {"symbol": "1INCH/USD", "name": "1inch", "coin_id": "1inch"},
-    {"symbol": "ENJ/USD", "name": "Enjin Coin", "coin_id": "enjincoin"},
-    {"symbol": "CHZ/USD", "name": "Chiliz", "coin_id": "chiliz"},
-    {"symbol": "GALA/USD", "name": "Gala", "coin_id": "gala"},
-    {"symbol": "IMX/USD", "name": "Immutable X", "coin_id": "immutable-x"},
-    
-    # Emerging (41-50)
-    {"symbol": "OP/USD", "name": "Optimism", "coin_id": "optimism"},
-    {"symbol": "SUI/USD", "name": "Sui", "coin_id": "sui"},
-    {"symbol": "SEI/USD", "name": "Sei", "coin_id": "sei-network"},
-    {"symbol": "INJ/USD", "name": "Injective", "coin_id": "injective-protocol"},
-    {"symbol": "PEPE/USD", "name": "Pepe", "coin_id": "pepe"},
-    {"symbol": "WLD/USD", "name": "Worldcoin", "coin_id": "worldcoin-wld"},
-    {"symbol": "RNDR/USD", "name": "Render", "coin_id": "render-token"},
-    {"symbol": "STX/USD", "name": "Stacks", "coin_id": "blockstack"},
-    {"symbol": "HBAR/USD", "name": "Hedera", "coin_id": "hedera-hashgraph"},
-    {"symbol": "QNT/USD", "name": "Quant", "coin_id": "quant-network"}
-]
+# Smart Adaptive Crypto Discovery - Top 200+ coins
+CRYPTO_CACHE = {
+    "last_update": None, 
+    "full_list": [],
+    "hot_list": [],
+    "trending": []
+}
 
-# Cache for crypto list
-CRYPTO_CACHE = {"last_update": None, "data": AVAILABLE_CRYPTOS}
+# Fetch top 200+ cryptos dynamically from CoinGecko
+async def fetch_top_cryptos(limit=200):
+    """Fetch top cryptos by market cap from CoinGecko"""
+    try:
+        async with aiohttp.ClientSession() as session:
+            url = f"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page={limit}&page=1&sparkline=false&price_change_percentage=24h"
+            
+            async with session.get(url, timeout=15) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    
+                    cryptos = []
+                    for coin in data:
+                        cryptos.append({
+                            "symbol": f"{coin['symbol'].upper()}/USD",
+                            "name": coin['name'],
+                            "coin_id": coin['id'],
+                            "market_cap": coin.get('market_cap', 0),
+                            "volume_24h": coin.get('total_volume', 0),
+                            "price_change_24h": coin.get('price_change_percentage_24h', 0),
+                            "current_price": coin.get('current_price', 0)
+                        })
+                    
+                    logger.info(f"✅ Fetched {len(cryptos)} cryptocurrencies from CoinGecko")
+                    return cryptos
+                else:
+                    logger.warning(f"CoinGecko returned {response.status}")
+                    return get_fallback_crypto_list()
+    except Exception as e:
+        logger.error(f"Error fetching crypto list: {e}")
+        return get_fallback_crypto_list()
+
+def get_fallback_crypto_list():
+    """Fallback list if API fails"""
+    return [
+        {"symbol": "BTC/USD", "name": "Bitcoin", "coin_id": "bitcoin", "market_cap": 2000000000000, "volume_24h": 50000000000, "price_change_24h": 0, "current_price": 100000},
+        {"symbol": "ETH/USD", "name": "Ethereum", "coin_id": "ethereum", "market_cap": 400000000000, "volume_24h": 20000000000, "price_change_24h": 0, "current_price": 3500},
+        {"symbol": "XRP/USD", "name": "Ripple", "coin_id": "ripple", "market_cap": 100000000000, "volume_24h": 5000000000, "price_change_24h": 0, "current_price": 2.0},
+        {"symbol": "BNB/USD", "name": "Binance Coin", "coin_id": "binancecoin", "market_cap": 90000000000, "volume_24h": 3000000000, "price_change_24h": 0, "current_price": 600},
+        {"symbol": "SOL/USD", "name": "Solana", "coin_id": "solana", "market_cap": 80000000000, "volume_24h": 4000000000, "price_change_24h": 0, "current_price": 150}
+    ]
+
+# Smart Filter: Identify hot coins based on multiple factors
+def smart_filter_hot_coins(all_cryptos, top_n=20):
+    """
+    Intelligent filtering to find hot coins based on:
+    - Volume surge (24h volume spike)
+    - Price momentum (24h price change)
+    - Market cap (exclude too small)
+    - Volatility (high volatility = opportunity)
+    """
+    scored_cryptos = []
+    
+    for crypto in all_cryptos:
+        score = 0
+        
+        # Volume score (higher volume = more interest)
+        if crypto.get('volume_24h', 0) > 10000000:  # >$10M volume
+            volume_score = min(crypto['volume_24h'] / 100000000, 10)  # Scale 0-10
+            score += volume_score
+        
+        # Momentum score (big movers)
+        price_change = abs(crypto.get('price_change_24h', 0))
+        if price_change > 2:  # >2% move
+            momentum_score = min(price_change / 2, 10)  # Scale 0-10
+            score += momentum_score * 1.5  # Weight momentum higher
+        
+        # Market cap filter (not too small, not too big)
+        market_cap = crypto.get('market_cap', 0)
+        if 1000000 < market_cap < 10000000000:  # $1M - $10B sweet spot
+            score += 5
+        
+        # Trending bonus (top 100 get bonus)
+        if all_cryptos.index(crypto) < 100:
+            score += 2
+        
+        crypto['hot_score'] = score
+        if score > 5:  # Threshold for "hot"
+            scored_cryptos.append(crypto)
+    
+    # Sort by score and return top N
+    scored_cryptos.sort(key=lambda x: x['hot_score'], reverse=True)
+    return scored_cryptos[:top_n]
+
+# Update crypto cache periodically
+async def update_crypto_cache():
+    """Update the crypto cache with latest data"""
+    now = datetime.now(timezone.utc)
+    
+    # Update every 5 minutes
+    if CRYPTO_CACHE["last_update"] is None or \
+       (now - CRYPTO_CACHE["last_update"]).seconds > 300:
+        
+        logger.info("🔄 Updating crypto database...")
+        all_cryptos = await fetch_top_cryptos(200)
+        
+        CRYPTO_CACHE["full_list"] = all_cryptos
+        CRYPTO_CACHE["hot_list"] = smart_filter_hot_coins(all_cryptos, 20)
+        CRYPTO_CACHE["last_update"] = now
+        
+        logger.info(f"✅ Cache updated: {len(all_cryptos)} total, {len(CRYPTO_CACHE['hot_list'])} hot coins")
+    
+    return CRYPTO_CACHE["hot_list"]
+
+# Get available cryptos (dynamic)
+AVAILABLE_CRYPTOS = []
 
 # Trading Bot State
 bot_state = {
