@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import SentimentGauge from "@/components/SentimentGauge";
-import ChartView from "@/components/ChartView";
+import AdvancedChart from "@/components/AdvancedChart";
 import TradeMemory from "@/components/TradeMemory";
 import LiveConsole from "@/components/LiveConsole";
 import CryptoRecommendations from "@/components/CryptoRecommendations";
