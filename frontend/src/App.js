@@ -15,6 +15,8 @@ import SentimentGauge from "@/components/SentimentGauge";
 import ChartView from "@/components/ChartView";
 import TradeMemory from "@/components/TradeMemory";
 import LiveConsole from "@/components/LiveConsole";
+import CryptoRecommendations from "@/components/CryptoRecommendations";
+import MLStats from "@/components/MLStats";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
