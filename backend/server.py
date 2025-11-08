@@ -427,13 +427,17 @@ async def analyze_sentiment_with_ai(headlines):
         # Fallback to simple average
         return sum([h['sentiment'] for h in headlines]) / len(headlines) if headlines else 0
 
-# Intelligent Crypto Recommendation System (Simplified for performance)
+# Intelligent Crypto Recommendation System with Smart Filtering
 async def analyze_crypto_opportunities():
-    """Analyze all cryptos and recommend best trading opportunities based on news and sentiment"""
+    """Analyze top 200 cryptos and recommend best trading opportunities using smart filtering"""
     try:
+        # Update cache and get hot coins
+        hot_coins = await update_crypto_cache()
+        
         recommendations = []
         
-        for crypto in AVAILABLE_CRYPTOS[:5]:  # Analyze top 5 only for speed
+        # Analyze hot coins (filtered from top 200)
+        for crypto in hot_coins[:10]:  # Top 10 hottest coins
             # Generate news for each crypto
             headlines = []
             for _ in range(2):
