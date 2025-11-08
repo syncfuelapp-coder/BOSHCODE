@@ -1154,8 +1154,14 @@ async def get_market_data():
 
 @api_router.get("/crypto/list")
 async def get_crypto_list():
-    """Get list of available cryptocurrencies"""
-    return {"cryptos": AVAILABLE_CRYPTOS}
+    """Get list of available cryptocurrencies (top 200+)"""
+    # Ensure cache is updated
+    await update_crypto_cache()
+    return {
+        "cryptos": CRYPTO_CACHE["full_list"][:50],  # Return top 50 for display
+        "total_available": len(CRYPTO_CACHE["full_list"]),
+        "hot_coins": len(CRYPTO_CACHE["hot_list"])
+    }
 
 @api_router.get("/crypto/recommendations")
 async def get_crypto_recommendations():
