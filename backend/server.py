@@ -181,7 +181,14 @@ def generate_mock_news(crypto_symbol=None):
     return selected
 
 # Mock Market Data Generator
-def generate_mock_market_data(base_price=50000, volatility=0.02):
+def generate_mock_market_data(symbol="BTC/USD", volatility=0.02):
+    # Get base price for the symbol
+    base_price = 50000
+    for crypto in AVAILABLE_CRYPTOS:
+        if crypto["symbol"] == symbol:
+            base_price = crypto["base_price"]
+            break
+    
     data = []
     current_price = base_price
     for i in range(100):
@@ -195,10 +202,10 @@ def generate_mock_market_data(base_price=50000, volatility=0.02):
         timestamp = datetime.now(timezone.utc).isoformat()
         data.append({
             "timestamp": timestamp,
-            "open": round(open_price, 2),
-            "high": round(high_price, 2),
-            "low": round(low_price, 2),
-            "close": round(close_price, 2),
+            "open": round(open_price, 6),
+            "high": round(high_price, 6),
+            "low": round(low_price, 6),
+            "close": round(close_price, 6),
             "volume": round(volume, 2)
         })
         current_price = close_price
