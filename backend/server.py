@@ -595,18 +595,25 @@ async def check_position_exit(symbol, latest, recommendation):
 
 # Bot Loop
 async def bot_loop():
-    global bot_state
+    global bot_state, portfolio
     
-    bot_state["trade_logs"].append(f"[{datetime.now(timezone.utc).isoformat()[:19]}] Bot started in {bot_state['mode']} mode")
+    if bot_state["multi_crypto_enabled"]:
+        bot_state["trade_logs"].append(f"[{datetime.now(timezone.utc).isoformat()[:19]}] 🚀 Multi-Crypto Bot started - Monitoring all markets")
+    else:
+        bot_state["trade_logs"].append(f"[{datetime.now(timezone.utc).isoformat()[:19]}] Bot started on {bot_state['current_market']}")
     
     while bot_state["running"]:
         try:
-            await execute_trade_logic()
-            await asyncio.sleep(5)  # Execute every 5 seconds
+            if bot_state["multi_crypto_enabled"]:
+                await execute_multi_crypto_trading()
+            else:
+                # Original single crypto logic (kept for compatibility)
+                pass
+            await asyncio.sleep(8)  # Execute every 8 seconds
         except Exception as e:
             logger.error(f"Bot loop error: {e}")
             bot_state["trade_logs"].append(f"[ERROR] {str(e)}")
-            await asyncio.sleep(5)
+            await asyncio.sleep(8)
 
 # API Endpoints
 @api_router.post("/bot/start")
