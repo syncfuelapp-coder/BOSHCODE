@@ -76,13 +76,26 @@ function App() {
   useEffect(() => {
     fetchBotStatus();
     fetchMarketData();
+    fetchCryptoRecommendations();
+    fetchMLStats();
+    
     const interval = setInterval(() => {
       fetchBotStatus();
+      fetchMLStats();
       if (isRunning) {
         fetchMarketData();
       }
     }, 2000);
-    return () => clearInterval(interval);
+    
+    // Fetch recommendations every 30 seconds
+    const recInterval = setInterval(() => {
+      fetchCryptoRecommendations();
+    }, 30000);
+    
+    return () => {
+      clearInterval(interval);
+      clearInterval(recInterval);
+    };
   }, [isRunning]);
 
   const handleStart = async () => {
