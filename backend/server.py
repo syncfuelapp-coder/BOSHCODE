@@ -598,12 +598,12 @@ class AdaptivePortfolioManager:
         self.positions = {}  # {symbol: {amount, entry_price, invested, stop_loss, take_profit, trailing_stop, highest_price}}
         self.closed_trades_profit = []
     
-    def can_open_position(self, symbol):
+    def can_open_position(self, symbol, max_positions=5):
         """Check if we can open a new position"""
         if symbol in self.positions:
             return False
-        # Allow max 5 concurrent positions
-        return len(self.positions) < 5
+        # Allow configurable max concurrent positions
+        return len(self.positions) < max_positions
     
     def calculate_adaptive_position_size(self, symbol, risk_pct, confidence, volatility):
         """Dynamic position sizing based on AI confidence and volatility"""
