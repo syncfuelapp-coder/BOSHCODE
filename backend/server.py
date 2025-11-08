@@ -1188,7 +1188,7 @@ async def switch_crypto(data: dict):
     symbol = data.get("symbol")
     if symbol and any(c["symbol"] == symbol for c in AVAILABLE_CRYPTOS):
         bot_state["current_market"] = symbol
-        bot_state["market_data"] = generate_mock_market_data(symbol)
+        bot_state["market_data"] = await fetch_real_time_data(symbol)
         return {"status": "success", "current_market": symbol}
     return {"status": "error", "message": "Invalid crypto symbol"}
 
