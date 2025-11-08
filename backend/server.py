@@ -887,7 +887,7 @@ async def execute_trade_for_crypto(symbol, recommendation, latest, df):
         # Update active positions
         bot_state["active_positions"] = portfolio.get_active_positions()
 
-# Check and close positions
+# Check and close positions with adaptive logic
 async def check_position_exit(symbol, latest, recommendation):
     global bot_state, portfolio
     
@@ -896,27 +896,9 @@ async def check_position_exit(symbol, latest, recommendation):
     
     pos = portfolio.positions[symbol]
     current_price = latest['close']
-    entry_price = pos["entry_price"]
-    profit_pct = ((current_price - entry_price) / entry_price) * 100
     
-    # Exit conditions
-    should_exit = False
-    exit_reason = ""
-    
-    # Take profit at 5%
-    if profit_pct >= 5:
-        should_exit = True
-        exit_reason = "Take Profit"
-    
-    # Stop loss at -3%
-    elif profit_pct <= -3:
-        should_exit = True
-        exit_reason = "Stop Loss"
-    
-    # Exit if recommendation turns to SELL
-    elif recommendation["recommendation"] in ["SELL"] or recommendation["opportunity_score"] < 40:
-        should_exit = True
-        exit_reason = "Weak Signal"
+    # Use adaptive exit logic
+    should_exit, exit_reason = portfolio.should_close_position(symbol, current_price, recommendation)
     
     if should_exit:
         profit = portfolio.close_position(symbol, current_price)
