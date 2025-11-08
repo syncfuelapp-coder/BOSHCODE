@@ -151,8 +151,16 @@ async def update_crypto_cache():
     
     return CRYPTO_CACHE["hot_list"]
 
-# Get available cryptos (dynamic)
+# Get available cryptos (dynamic) - populated from cache
 AVAILABLE_CRYPTOS = []
+
+# Initialize crypto cache on startup
+async def initialize_crypto_data():
+    """Initialize crypto data on startup"""
+    global AVAILABLE_CRYPTOS
+    await update_crypto_cache()
+    AVAILABLE_CRYPTOS = CRYPTO_CACHE["full_list"]
+    logger.info(f"🚀 Initialized with {len(AVAILABLE_CRYPTOS)} cryptocurrencies")
 
 # Trading Bot State
 bot_state = {
