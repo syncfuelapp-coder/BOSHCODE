@@ -696,7 +696,7 @@ async def update_settings(settings: BotSettings):
 
 @api_router.post("/bot/reset")
 async def reset_bot():
-    global bot_state
+    global bot_state, portfolio
     
     if bot_state["running"]:
         raise HTTPException(status_code=400, detail="Stop the bot before resetting")
@@ -712,6 +712,11 @@ async def reset_bot():
     bot_state["trade_logs"] = []
     bot_state["recent_trades"] = []
     bot_state["sentiment_headlines"] = []
+    bot_state["active_positions"] = {}
+    bot_state["crypto_data"] = {}
+    
+    # Reset portfolio
+    portfolio = PortfolioManager(100.0)
     
     return {"status": "reset", "message": "Bot reset to £100 demo balance"}
 
