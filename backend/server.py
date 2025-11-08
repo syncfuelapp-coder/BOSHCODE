@@ -18,6 +18,7 @@ from emergentintegrations.llm.chat import LlmChat, UserMessage
 import ta
 import aiohttp
 from crypto_database import TOP_200_CRYPTOS
+from coinbase_integration import coinbase_trader
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
