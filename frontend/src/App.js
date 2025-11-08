@@ -265,6 +265,7 @@ function App() {
               <ActivePositions 
                 positions={botStatus?.active_positions}
                 cryptoData={botStatus?.crypto_data}
+                maxPositions={botStatus?.max_positions || settings.max_positions}
               />
             )}
             
