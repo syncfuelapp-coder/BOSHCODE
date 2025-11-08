@@ -55,6 +55,24 @@ function App() {
     }
   };
 
+  const fetchCryptoRecommendations = async () => {
+    try {
+      const response = await axios.get(`${API}/crypto/recommendations`);
+      setCryptoRecommendations(response.data.recommendations);
+    } catch (error) {
+      console.error("Error fetching recommendations:", error);
+    }
+  };
+
+  const fetchMLStats = async () => {
+    try {
+      const response = await axios.get(`${API}/ml/stats`);
+      setMlStats(response.data.ml_stats);
+    } catch (error) {
+      console.error("Error fetching ML stats:", error);
+    }
+  };
+
   useEffect(() => {
     fetchBotStatus();
     fetchMarketData();
