@@ -184,9 +184,45 @@ def generate_mock_news(crypto_symbol=None):
         return (selected[0], selected[1], selected[2])
     return selected
 
-# Mock Market Data Generator
-def generate_mock_market_data(symbol="BTC/USD", volatility=0.02):
-    # Get base price for the symbol
+# Real-Time Market Data Fetcher
+async def fetch_real_time_data(symbol="BTC/USD"):
+    """Fetch real-time crypto data from Binance Public API"""
+    try:
+        # Convert symbol format (BTC/USD -> BTCUSDT)
+        binance_symbol = symbol.replace("/", "").replace("USD", "USDT")
+        
+        async with aiohttp.ClientSession() as session:
+            # Get 1-minute klines (candlesticks) for last 100 minutes
+            url = f"https://api.binance.com/api/v3/klines?symbol={binance_symbol}&interval=1m&limit=100"
+            
+            async with session.get(url, timeout=10) as response:
+                if response.status == 200:
+                    klines = await response.json()
+                    
+                    data = []
+                    for kline in klines:
+                        data.append({
+                            "timestamp": datetime.fromtimestamp(kline[0] / 1000, tz=timezone.utc).isoformat(),
+                            "open": float(kline[1]),
+                            "high": float(kline[2]),
+                            "low": float(kline[3]),
+                            "close": float(kline[4]),
+                            "volume": float(kline[5])
+                        })
+                    
+                    logger.info(f"✅ Fetched REAL-TIME data for {symbol}: ${data[-1]['close']:.2f}")
+                    return data
+                else:
+                    logger.warning(f"Failed to fetch real data for {symbol}, using fallback")
+                    return generate_fallback_data(symbol)
+                    
+    except Exception as e:
+        logger.error(f"Error fetching real-time data for {symbol}: {e}")
+        return generate_fallback_data(symbol)
+
+# Fallback Mock Data (if API fails)
+def generate_fallback_data(symbol="BTC/USD"):
+    """Fallback to simulated data if API fails"""
     base_price = 50000
     for crypto in AVAILABLE_CRYPTOS:
         if crypto["symbol"] == symbol:
@@ -197,10 +233,10 @@ def generate_mock_market_data(symbol="BTC/USD", volatility=0.02):
     current_price = base_price
     for i in range(100):
         open_price = current_price
-        change = current_price * volatility * random.uniform(-1, 1)
+        change = current_price * 0.001 * random.uniform(-1, 1)  # 0.1% volatility
         close_price = current_price + change
-        high_price = max(open_price, close_price) * random.uniform(1, 1.01)
-        low_price = min(open_price, close_price) * random.uniform(0.99, 1)
+        high_price = max(open_price, close_price) * random.uniform(1, 1.002)
+        low_price = min(open_price, close_price) * random.uniform(0.998, 1)
         volume = random.uniform(1000000, 5000000)
         
         timestamp = datetime.now(timezone.utc).isoformat()
@@ -213,6 +249,8 @@ def generate_mock_market_data(symbol="BTC/USD", volatility=0.02):
             "volume": round(volume, 2)
         })
         current_price = close_price
+    
+    logger.info(f"⚠️ Using FALLBACK data for {symbol}")
     return data
 
 # Technical Indicators
