@@ -1266,7 +1266,39 @@ async def switch_crypto(data: dict):
 async def get_ml_stats():
     """Get machine learning model statistics"""
     stats = ml_model.get_model_stats()
+    stats["market_regime"] = ml_model.market_regime
+    stats["profit_factor"] = round(ml_model.profit_factor, 2)
     return {"ml_stats": stats}
+
+@api_router.post("/coinbase/connect")
+async def connect_coinbase(data: dict):
+    """Connect Coinbase account with API keys"""
+    api_key = data.get("api_key")
+    api_secret = data.get("api_secret")
+    
+    if not api_key or not api_secret:
+        raise HTTPException(status_code=400, detail="API key and secret required")
+    
+    # Update Coinbase trader
+    coinbase_trader.api_key = api_key
+    coinbase_trader.api_secret = api_secret
+    coinbase_trader.is_demo = False
+    
+    # Test connection
+    balance = await coinbase_trader.get_account_balance()
+    
+    if "error" in balance:
+        raise HTTPException(status_code=400, detail=f"Failed to connect: {balance['error']}")
+    
+    return {"status": "connected", "message": "Coinbase account connected successfully"}
+
+@api_router.get("/coinbase/status")
+async def get_coinbase_status():
+    """Check if Coinbase is connected"""
+    return {
+        "connected": not coinbase_trader.is_demo,
+        "mode": "live" if not coinbase_trader.is_demo else "demo"
+    }
 
 # Include the router in the main app
 app.include_router(api_router)
