@@ -29,7 +29,7 @@ const MLStats = ({ mlStats }) => {
       {!isActive ? (
         <div className="space-y-3">
           <div className="text-sm text-slate-400 mb-2">
-            Learning Mode: The bot needs more trades to train the ML model.
+            {mlStats.phase || "Learning Mode: The bot needs more trades to train the ML model."}
           </div>
           <div className="flex items-center gap-3">
             <Database className="w-4 h-4 text-slate-400" />
