@@ -69,12 +69,15 @@ bot_state = {
     "ai_mode_enabled": True,
     "sentiment_weight": 0.5,
     "trade_logs": [],
-    "market_data": [],
+    "market_data": {},
     "recent_trades": [],
     "sentiment_headlines": [],
     "crypto_recommendations": [],
     "ml_model_performance": [],
-    "learning_data": []
+    "learning_data": [],
+    "multi_crypto_enabled": True,
+    "active_positions": {},
+    "crypto_data": {}
 }
 
 task = None
