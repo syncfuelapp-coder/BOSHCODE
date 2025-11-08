@@ -504,6 +504,27 @@ class AdvancedTradingML:
         self.profit_factor = 1.0  # Ratio of wins to losses
         self.sharpe_ratio = 0.0  # Risk-adjusted returns
         
+            # --- Persistent learning methods ---
+    def save_model(self):
+        """Save trained model and training data to disk"""
+        import joblib, json
+        joblib.dump(self.rf_model, "trained_model.pkl")
+        with open("training_data.json", "w") as f:
+            json.dump(self.training_data, f)
+        print("🧠 Model & training data saved")
+
+    def load_model(self):
+        """Load trained model and training data from disk"""
+        from pathlib import Path
+        import joblib, json
+        if Path("trained_model.pkl").exists():
+            self.rf_model = joblib.load("trained_model.pkl")
+            print("✅ Loaded trained model from file")
+        if Path("training_data.json").exists():
+            with open("training_data.json") as f:
+                self.training_data = json.load(f)
+            print(f"✅ Loaded {len(self.training_data)} previous training records")
+        
     def detect_market_regime(self, market_data):
         """Detect current market regime for adaptive strategy"""
         if len(market_data) < 50:
@@ -649,7 +670,8 @@ class AdvancedTradingML:
         
         self.rf_model.fit(X, y)
         self.is_trained = True
-        
+        self.save_model()
+                
         # Calculate and store feature importance
         feature_names = ["ema", "rsi", "macd", "sentiment", "volatility", 
                         "momentum_5", "momentum_10", "volume", "volatility_coef", 
