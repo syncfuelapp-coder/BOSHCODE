@@ -763,9 +763,17 @@ async def reset_bot():
 
 @api_router.get("/market/data")
 async def get_market_data():
-    if not bot_state["market_data"]:
-        bot_state["market_data"] = generate_mock_market_data(bot_state["current_market"])
-    return {"data": bot_state["market_data"][-50:]}
+    # Fetch real-time data for current market
+    symbol = bot_state["current_market"]
+    if symbol not in bot_state["crypto_data"] or "market_data" not in bot_state["crypto_data"][symbol]:
+        market_data = await fetch_real_time_data(symbol)
+        if symbol not in bot_state["crypto_data"]:
+            bot_state["crypto_data"][symbol] = {}
+        bot_state["crypto_data"][symbol]["market_data"] = market_data
+    else:
+        market_data = bot_state["crypto_data"][symbol]["market_data"]
+    
+    return {"data": market_data[-50:]}
 
 @api_router.get("/crypto/list")
 async def get_crypto_list():
