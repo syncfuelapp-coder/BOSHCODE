@@ -39,17 +39,71 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Available Cryptocurrencies
+# Expanded Cryptocurrency List (Top 50+ from CoinGecko)
 AVAILABLE_CRYPTOS = [
-    {"symbol": "BTC/USD", "name": "Bitcoin", "base_price": 50000},
-    {"symbol": "ETH/USD", "name": "Ethereum", "base_price": 3000},
-    {"symbol": "XRP/USD", "name": "Ripple", "base_price": 0.60},
-    {"symbol": "SOL/USD", "name": "Solana", "base_price": 150},
-    {"symbol": "ADA/USD", "name": "Cardano", "base_price": 0.50},
-    {"symbol": "DOGE/USD", "name": "Dogecoin", "base_price": 0.08},
-    {"symbol": "MATIC/USD", "name": "Polygon", "base_price": 0.70},
-    {"symbol": "DOT/USD", "name": "Polkadot", "base_price": 6.0}
+    # Top 10
+    {"symbol": "BTC/USD", "name": "Bitcoin", "coin_id": "bitcoin"},
+    {"symbol": "ETH/USD", "name": "Ethereum", "coin_id": "ethereum"},
+    {"symbol": "XRP/USD", "name": "Ripple", "coin_id": "ripple"},
+    {"symbol": "BNB/USD", "name": "Binance Coin", "coin_id": "binancecoin"},
+    {"symbol": "SOL/USD", "name": "Solana", "coin_id": "solana"},
+    {"symbol": "ADA/USD", "name": "Cardano", "coin_id": "cardano"},
+    {"symbol": "DOGE/USD", "name": "Dogecoin", "coin_id": "dogecoin"},
+    {"symbol": "TRX/USD", "name": "TRON", "coin_id": "tron"},
+    {"symbol": "AVAX/USD", "name": "Avalanche", "coin_id": "avalanche-2"},
+    {"symbol": "LINK/USD", "name": "Chainlink", "coin_id": "chainlink"},
+    
+    # Top 11-20
+    {"symbol": "DOT/USD", "name": "Polkadot", "coin_id": "polkadot"},
+    {"symbol": "MATIC/USD", "name": "Polygon", "coin_id": "matic-network"},
+    {"symbol": "SHIB/USD", "name": "Shiba Inu", "coin_id": "shiba-inu"},
+    {"symbol": "UNI/USD", "name": "Uniswap", "coin_id": "uniswap"},
+    {"symbol": "LTC/USD", "name": "Litecoin", "coin_id": "litecoin"},
+    {"symbol": "BCH/USD", "name": "Bitcoin Cash", "coin_id": "bitcoin-cash"},
+    {"symbol": "ATOM/USD", "name": "Cosmos", "coin_id": "cosmos"},
+    {"symbol": "APT/USD", "name": "Aptos", "coin_id": "aptos"},
+    {"symbol": "FIL/USD", "name": "Filecoin", "coin_id": "filecoin"},
+    {"symbol": "ARB/USD", "name": "Arbitrum", "coin_id": "arbitrum"},
+    
+    # Top 21-30
+    {"symbol": "NEAR/USD", "name": "NEAR Protocol", "coin_id": "near"},
+    {"symbol": "VET/USD", "name": "VeChain", "coin_id": "vechain"},
+    {"symbol": "ALGO/USD", "name": "Algorand", "coin_id": "algorand"},
+    {"symbol": "AAVE/USD", "name": "Aave", "coin_id": "aave"},
+    {"symbol": "GRT/USD", "name": "The Graph", "coin_id": "the-graph"},
+    {"symbol": "SAND/USD", "name": "The Sandbox", "coin_id": "the-sandbox"},
+    {"symbol": "MANA/USD", "name": "Decentraland", "coin_id": "decentraland"},
+    {"symbol": "AXS/USD", "name": "Axie Infinity", "coin_id": "axie-infinity"},
+    {"symbol": "FTM/USD", "name": "Fantom", "coin_id": "fantom"},
+    {"symbol": "XLM/USD", "name": "Stellar", "coin_id": "stellar"},
+    
+    # DeFi & Gaming (31-40)
+    {"symbol": "CRV/USD", "name": "Curve DAO", "coin_id": "curve-dao-token"},
+    {"symbol": "SUSHI/USD", "name": "SushiSwap", "coin_id": "sushi"},
+    {"symbol": "COMP/USD", "name": "Compound", "coin_id": "compound-governance-token"},
+    {"symbol": "YFI/USD", "name": "yearn.finance", "coin_id": "yearn-finance"},
+    {"symbol": "SNX/USD", "name": "Synthetix", "coin_id": "synthetix-network-token"},
+    {"symbol": "1INCH/USD", "name": "1inch", "coin_id": "1inch"},
+    {"symbol": "ENJ/USD", "name": "Enjin Coin", "coin_id": "enjincoin"},
+    {"symbol": "CHZ/USD", "name": "Chiliz", "coin_id": "chiliz"},
+    {"symbol": "GALA/USD", "name": "Gala", "coin_id": "gala"},
+    {"symbol": "IMX/USD", "name": "Immutable X", "coin_id": "immutable-x"},
+    
+    # Emerging (41-50)
+    {"symbol": "OP/USD", "name": "Optimism", "coin_id": "optimism"},
+    {"symbol": "SUI/USD", "name": "Sui", "coin_id": "sui"},
+    {"symbol": "SEI/USD", "name": "Sei", "coin_id": "sei-network"},
+    {"symbol": "INJ/USD", "name": "Injective", "coin_id": "injective-protocol"},
+    {"symbol": "PEPE/USD", "name": "Pepe", "coin_id": "pepe"},
+    {"symbol": "WLD/USD", "name": "Worldcoin", "coin_id": "worldcoin-wld"},
+    {"symbol": "RNDR/USD", "name": "Render", "coin_id": "render-token"},
+    {"symbol": "STX/USD", "name": "Stacks", "coin_id": "blockstack"},
+    {"symbol": "HBAR/USD", "name": "Hedera", "coin_id": "hedera-hashgraph"},
+    {"symbol": "QNT/USD", "name": "Quant", "coin_id": "quant-network"}
 ]
+
+# Cache for crypto list
+CRYPTO_CACHE = {"last_update": None, "data": AVAILABLE_CRYPTOS}
 
 # Trading Bot State
 bot_state = {
