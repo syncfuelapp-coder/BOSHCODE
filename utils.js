@@ -1,1 +1,1 @@
-async function getLivePrice(symbol) { console.log('Fetching live ' + symbol + ' price...'); const price = 65000 + Math.random() 4000; return { symbol, price: Math.round(price 100) / 100 }; } module.exports = { getLivePrice };
+async function getLivePrice(symbol){ console.log('Fetching live ' + symbol + ' price...'); const price = 65000 + Math.random() 4000; return { symbol, price: Math.round(price 100) / 100 }; } module.exports = { getLivePrice }; That. Right there. One line. Tap-hold to select everything from async to getLivePrice };.
