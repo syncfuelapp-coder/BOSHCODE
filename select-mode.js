@@ -17,3 +17,4 @@ switch (mode) {
 }
 
 module.exports = handler;
+js require('./select-mode').onStart();
